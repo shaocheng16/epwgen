@@ -6,7 +6,7 @@ base_dir = pf
 #name of job on Euler. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run
-pps_dir = '../..' 
+pps_dir = '../../pps' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 8
 #number of precessors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
