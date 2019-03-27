@@ -1260,8 +1260,8 @@ wannier_init={projections_epw}
 #bands including other bands should they fall in this window. You can narrow the inner and outer window with dE which specifies...
 #the value in eV that gets added/subtracted to the bottom/top of the inner window (i.e. negative values will broaden it).
 auto_window={auto_window}
-dE_inner=0.0
-dE_outer=0.0
+dE_inner=0.1
+dE_outer=-1.0
 
 
 #Set the inner and outer wannierization energy windows manually (in eV). You only need to specify the values of this block...
