@@ -1,19 +1,19 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'Pm-3m_q8_e0_bands'  
+pf = 'WO3'  
 #name of the parent directory created by this script
-base_dir = 'Pm-3m_q8_e0_bands' 
+base_dir = pf 
 #name of job on Euler. Be mindful of regex metacharacters
-jobname = base_dir
+jobname = pf
 #location of the pseudopotentials where the calculations are run
-pps_dir = '/cluster/scratch/mnoe/QE/pps' 
+pps_dir = '../..' 
 #number of processors to be used for scf, bands and nscf calculations
-num_of_cpu_scf = 16
+num_of_cpu_scf = 8
 #number of precessors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
 #irreducible modes, each of these calculations will be run with the specified amount of CPUs)
 num_of_cpu_ph = 8
 #number of processors to be used for any epw calculation
-num_of_cpu_epw = 96
+num_of_cpu_epw = 8
 #memory per cpu
 ram = 3072
 #time limit in hours for scf, nscf and bands calculations
@@ -22,7 +22,7 @@ scf_t = 4
 #depending on whether the phonon calculations are split or not
 q_t = 4
 #time limit in hours for epw calculations 
-epw_t = 72
+epw_t = 4
 #specify if phonon calculations should be split into calculations of irreducible q-points
 split_q = True
 #specify if phonon calculations should additionally be split into calculations of irreducible represenations.
@@ -32,11 +32,11 @@ split_irr = True
 #ref_bands to True. epw.sh will then run with the corresponding input of the parent directory s.t. the bands
 #don't have to be recalculated (start from 2nd submission script).
 #If you set ref_bands to False you need to calculate the bands first (start form 1st submission script).
-ref_bands = True
+ref_bands = False
 #Parent directory containing the already calculated bands (in the respective ELB and PHB directories).
 #You only need to specify this if ref_bands = True.
 #If ref_bands = True the prefix has to be the same as the one for the phonon calculations
-bands_dir = '/cluster/scratch/mnoe/QE/EPC/Pm-3m_00_q6_e01_bands'
+bands_dir = ''
 
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
@@ -98,31 +98,31 @@ ATOMIC_POSITIONS crystal
 
 #____________________CALCULATION_PARAMETERS____________________#
 #plane wave cut-off energy in Ry
-e_cut = 120  
+e_cut = 70  
 #coarse k-grid size
-k_x = 12
-k_y = 12
-k_z = 12
+k_x = 6
+k_y = 6
+k_z = 6
 #coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other
-q_x = 8
-q_y = 8
-q_z = 8
+q_x = 2
+q_y = 2
+q_z = 2
 #fine grid sizes
-kf_x = 60
-kf_y = 60
-kf_z = 60
-qf_x = 60
-qf_y = 60
-qf_z = 60
+kf_x = 0
+kf_y = 0
+kf_z = 0
+qf_x = 0
+qf_y = 0
+qf_z = 0
 #for random fine grids, set random_sampling to True and specify the number of respective random points.
 random_sampling = True
-random_nkf = 50000
-random_nqf = 25000
+random_nkf = 1000
+random_nqf = 500
 
 #number of bands calculated. Set to 0 if this should be determined automatically.
 num_of_bands = 0    
 #amount of additional charge per unit cell (electrons negative, holes positive). currently only electron doping possible
-nelect = -0.0
+nelect = -0.1
 #accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable)
 asr_type = 'simple'
 
