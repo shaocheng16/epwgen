@@ -631,7 +631,7 @@ a2F_in = ['''
     
     efermi_read = .true.
     fermi_energy = 0.0
-    dele
+
     nk1 = {k_x}
     nk2 = {k_y}
     nk3 = {k_z}
