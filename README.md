@@ -24,3 +24,5 @@ The calculations need to be run on a cluster with IBM® Platform™ LSF® implem
 For spin orbit coupling you will most likely need an updated postprocessing script ("pp.py").
 
 Solving the Eliashberg equations does not work at the moment.
+
+The script contains a crude but quick and working example.
