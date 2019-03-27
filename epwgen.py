@@ -15,7 +15,7 @@ num_of_cpu_ph = 8
 #number of processors to be used for any epw calculation
 num_of_cpu_epw = 8
 #memory per cpu
-ram = 3072
+ram = 1024
 #time limit in hours for scf, nscf and bands calculations
 scf_t = 4
 #time limit in hours for phonon calculations, i.e. for the whole calculation or per irreducbile q-point or irreducible representation
@@ -1316,7 +1316,7 @@ base_dir=$(pwd)
 ref_dir="{bands_dir}"
 if ! $ref_bands
 then
-ref_dir=base_dir
+ref_dir=$base_dir
 fi
 
 #__________POSTPROCESSING__________#
