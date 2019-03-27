@@ -19,7 +19,7 @@ Check the submission scripts for further options/instructions.
 
 Any calculation parameters that are missing or have been "hardcoded" should be easy enough to introduce/change in the input lists called *_in. Everything should still work if you wish to do so.
 
-The calculations need to be run on a cluster with IBM® Platform™ LSF® implementation however modifying it to run on different workload schedulers like SLURM should not be difficult (positions of necessary changes are denoted by "LSF" in the script script). 
+The calculations need to be run on a cluster with IBM® Platform™ LSF® implementation however modifying it to run on different workload schedulers like SLURM should not be difficult (positions of necessary changes are denoted by "LSF" in the main script). 
 
 For spin orbit coupling you will most likely need an updated postprocessing script ("pp.py").
 
