@@ -3,7 +3,7 @@
 pf = 'WO3'  
 #name of the parent directory created by this script
 base_dir = pf 
-#name of job on Euler. Be mindful of regex metacharacters
+#name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run
 pps_dir = '../../pps' 
@@ -895,6 +895,8 @@ status=\\\\\$(tail -n2 ph_q\${{q}}.out | head -n1 | awk '{{print \\\\\$2}}')
 if [ "\\\\\$status" == "DONE." ]
 then 
 rm q\${{q}}/_ph0/{pf}.q_\${{q}}/*.wfc*
+rm q\${{q}}/{pf}.save/wfc**.dat
+rm q\${{q}}/*.wfc*
 fi
 fi
 EOF1
@@ -978,6 +980,8 @@ status=\\\\\$(tail -n2 ph_q\${{q}}_r\${{r}}.out | head -n1 | awk '{{print \\\\\$
 if [ "\\\\\$status" == "DONE." ]
 then 
 rm q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/*.wfc*
+rm q\${{q}}_r\${{r}}/{pf}.save/wfc**.dat
+rm q\${{q}}_r\${{r}}/*.wfc*
 fi
 fi
 EOF1
