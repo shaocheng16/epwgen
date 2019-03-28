@@ -1221,8 +1221,11 @@ rm *.o
 rm job*
 rm *wfc*
 EOF
-#LSF
+
+if ! $no_sub
+then
 bsub<job.sh
+fi
 fi
 '''.format(elb_scf_sub = make_job_sub(jobname + '_elb_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            elb_scf_cond_sub = check_cond_sub(1, True),
