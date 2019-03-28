@@ -1661,14 +1661,17 @@ cd $base_dir/PHB
 rm -r _ph0 *.save
 rm *.dyn* *.e *.o *.fc
 #EPM directory
+cd $base_dir/EPM
 rm -r *save
 rm *.e *.o
-rm *.epb *wfc *.xml *.wout *.win *.ukk *.nnkp *.kmap *.epmatwe1 *.chk decay* *.fmt
-
+rm *.epb* *wfc* *.xml *.wout *.win *.ukk *.nnkp *.kmap *.epmatwe1 *.chk decay* *.fmt
 
 EOF
-#LSF
+if ! $no_sub
+then
 bsub<job.sh
+fi
+
 fi
 '''.format(epm_scf_sub = make_job_sub(jobname + '_epm_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            epm_scf_cond_sub = check_cond_sub(1, True),
