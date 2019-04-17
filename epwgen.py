@@ -959,6 +959,7 @@ cp -r {pf}.* q\${{q}}_r\${{r}}
 cp -r _ph0/{pf}.phsave/* q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
 fi
 
+cd q\${{q}}_r\${{r}}
 #prepare the input file
 cp ph.in ph_q\${{q}}_r\${{r}}.in
 
@@ -967,8 +968,6 @@ echo "    last_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
 echo "    start_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
 echo "    last_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
 echo "    /" >>  ph_q\${{q}}_r\${{r}}.in
-line=\$(grep -n outdir ph_q\${{q}}_r\${{r}}.in | cut -d : -f 1)
-sed -i -e "\${{line}}s/[^ ]*[^ ]/'.\/q\${{q}}_r\${{r}}'/3" ph_q\${{q}}_r\${{r}}.in
 
 #make the job file
 cat > job_temp.sh << EOF1
@@ -979,9 +978,9 @@ then
 status=\\\\\$(tail -n2 ph_q\${{q}}_r\${{r}}.out | head -n1 | awk '{{print \\\\\$2}}')
 if [ "\\\\\$status" == "DONE." ]
 then 
-rm q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/*.wfc*
-rm q\${{q}}_r\${{r}}/{pf}.save/wfc**.dat
-rm q\${{q}}_r\${{r}}/*.wfc*
+rm _ph0/{pf}.q_\${{q}}/*.wfc*
+rm {pf}.save/wfc**.dat
+rm *.wfc*
 fi
 fi
 EOF1
@@ -1002,6 +1001,7 @@ else
 #LSF
 bsub<job_temp.sh
 fi
+cd ..
 done
 done
 
