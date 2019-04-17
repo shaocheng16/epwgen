@@ -877,13 +877,12 @@ cp -r {pf}.* q\${{q}}
 cp -r _ph0/{pf}.phsave/* q\${{q}}/_ph0/{pf}.phsave
 fi
 
+cd q\${{q}}
 #prepare the input file
 cp ph.in ph_q\${{q}}.in
 echo "    start_q = \$q" >> ph_q\${{q}}.in
 echo "    last_q = \$q" >> ph_q\${{q}}.in
 echo "/" >>  ph_q\${{q}}.in
-line=\$(grep -n outdir ph_q\${{q}}.in | cut -d : -f 1)
-sed -i -e "\${{line}}s/[^ ]*[^ ]/'.\/q\${{q}}'/3" ph_q\${{q}}.in
 
 #make the job file
 cat > job_temp.sh << EOF1
@@ -894,9 +893,9 @@ then
 status=\\\\\$(tail -n2 ph_q\${{q}}.out | head -n1 | awk '{{print \\\\\$2}}')
 if [ "\\\\\$status" == "DONE." ]
 then 
-rm q\${{q}}/_ph0/{pf}.q_\${{q}}/*.wfc*
-rm q\${{q}}/{pf}.save/wfc**.dat
-rm q\${{q}}/*.wfc*
+rm _ph0/{pf}.q_\${{q}}/*.wfc*
+rm {pf}.save/wfc**.dat
+rm *.wfc*
 fi
 fi
 EOF1
@@ -917,6 +916,7 @@ else
 #LSF
 bsub<job_temp.sh
 fi
+cd ..
 done
 
 #update the conditions once all jobs are submitted
