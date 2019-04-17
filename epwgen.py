@@ -6,7 +6,7 @@ base_dir = pf
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
-pps_dir = '../../pps' 
+pps_dir = 'ppsdir' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 8
 #number of precessors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
@@ -937,6 +937,7 @@ cat > job.sh << EOF
 irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 
 #get the number of irreducible representations of each q-point and save them in an array
+declare -a irreps
 for ((i=0; i < irr_qs; i++))
 do
     q=\$((i+1))
@@ -1045,7 +1046,7 @@ cat > job.sh << EOF
 {ph_collect_sub}
 
 #make sure that all phonon calculations have finished without problems
-for ph in \$(ls ph_q**.out)
+for ph in \$(ls ph_q*/ph_q*.out)
 do
 status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
 if [ ! "\$status" == "DONE." ]
@@ -1056,14 +1057,9 @@ fi
 done
 
 #collect files
-irr_qs=\$(grep q-points ph_start.out | tail -n1 | grep -o [0-9]*)
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 for ((q=1; q<=irr_qs;q++))
 do
-#move input/output and run/error files to the corresponding directories
-for f in \$(ls *ph_q\${{q}}.*)
-do
-mv \$f q\${{q}}
-done
 
 #copy the dynmats
 cp q\${{q}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
@@ -1091,7 +1087,7 @@ cat > job.sh << EOF
 {ph_collect_sub}
 
 #make sure that all phonon calculations have finished without problems
-for ph in \$(ls ph_q**.out)
+for ph in \$(ls q*_r*/ph_q*_r*.out)
 do
 status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
 if [ ! "\$status" == "DONE." ]
@@ -1103,7 +1099,7 @@ done
 
 #collect files
 declare -a irreps
-irr_qs=\$(grep q-points ph_start.out | tail -n1 | grep -o [0-9]*)
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 for ((i=0; i < irr_qs; i++))
 do
     q=\$((i+1))
@@ -1119,11 +1115,6 @@ size_old=0
 touch dvscf1_old
 for ((r=1; r <= irreps[i]; r++))
 do
-#move input/output and run/error files to the corresponding directories
-for f in \$(ls *ph_q\${{q}}_r\${{r}}.*)
-do
-mv \$f q\${{q}}_r\${{r}}
-done
 
 #copy the dynmats
 cp q\${{q}}_r\${{r}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
