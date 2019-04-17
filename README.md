@@ -25,4 +25,4 @@ For spin orbit coupling you will most likely need an updated postprocessing scri
 
 Solving the Eliashberg equations does not work at the moment.
 
-The script contains a crude but quick and working example.
+The script contains a crude but quick and working example. You only need to specify the absolute path to the pseudopotentials on your cluster.
