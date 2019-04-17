@@ -5,7 +5,7 @@ pf = 'WO3'
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
-#location of the pseudopotentials where the calculations are run
+#location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
 pps_dir = '../../pps' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 8
@@ -879,7 +879,7 @@ fi
 
 cd q\${{q}}
 #prepare the input file
-cp ph.in ph_q\${{q}}.in
+cp ../ph.in ph_q\${{q}}.in
 echo "    start_q = \$q" >> ph_q\${{q}}.in
 echo "    last_q = \$q" >> ph_q\${{q}}.in
 echo "/" >>  ph_q\${{q}}.in
@@ -961,7 +961,7 @@ fi
 
 cd q\${{q}}_r\${{r}}
 #prepare the input file
-cp ph.in ph_q\${{q}}_r\${{r}}.in
+cp ../ph.in ph_q\${{q}}_r\${{r}}.in
 
 echo "    start_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
 echo "    last_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
