@@ -5,7 +5,7 @@ pf = 'WO3'
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
-#location of the pseudopotentials where the calculations are run
+#location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
 pps_dir = '../../pps' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 8
@@ -877,13 +877,12 @@ cp -r {pf}.* q\${{q}}
 cp -r _ph0/{pf}.phsave/* q\${{q}}/_ph0/{pf}.phsave
 fi
 
+cd q\${{q}}
 #prepare the input file
-cp ph.in ph_q\${{q}}.in
+cp ../ph.in ph_q\${{q}}.in
 echo "    start_q = \$q" >> ph_q\${{q}}.in
 echo "    last_q = \$q" >> ph_q\${{q}}.in
 echo "/" >>  ph_q\${{q}}.in
-line=\$(grep -n outdir ph_q\${{q}}.in | cut -d : -f 1)
-sed -i -e "\${{line}}s/[^ ]*[^ ]/'.\/q\${{q}}'/3" ph_q\${{q}}.in
 
 #make the job file
 cat > job_temp.sh << EOF1
@@ -894,9 +893,9 @@ then
 status=\\\\\$(tail -n2 ph_q\${{q}}.out | head -n1 | awk '{{print \\\\\$2}}')
 if [ "\\\\\$status" == "DONE." ]
 then 
-rm q\${{q}}/_ph0/{pf}.q_\${{q}}/*.wfc*
-rm q\${{q}}/{pf}.save/wfc**.dat
-rm q\${{q}}/*.wfc*
+rm _ph0/{pf}.q_\${{q}}/*.wfc*
+rm {pf}.save/wfc**.dat
+rm *.wfc*
 fi
 fi
 EOF1
@@ -917,6 +916,7 @@ else
 #LSF
 bsub<job_temp.sh
 fi
+cd ..
 done
 
 #update the conditions once all jobs are submitted
@@ -959,16 +959,15 @@ cp -r {pf}.* q\${{q}}_r\${{r}}
 cp -r _ph0/{pf}.phsave/* q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
 fi
 
+cd q\${{q}}_r\${{r}}
 #prepare the input file
-cp ph.in ph_q\${{q}}_r\${{r}}.in
+cp ../ph.in ph_q\${{q}}_r\${{r}}.in
 
 echo "    start_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
 echo "    last_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
 echo "    start_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
 echo "    last_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
 echo "    /" >>  ph_q\${{q}}_r\${{r}}.in
-line=\$(grep -n outdir ph_q\${{q}}_r\${{r}}.in | cut -d : -f 1)
-sed -i -e "\${{line}}s/[^ ]*[^ ]/'.\/q\${{q}}_r\${{r}}'/3" ph_q\${{q}}_r\${{r}}.in
 
 #make the job file
 cat > job_temp.sh << EOF1
@@ -979,9 +978,9 @@ then
 status=\\\\\$(tail -n2 ph_q\${{q}}_r\${{r}}.out | head -n1 | awk '{{print \\\\\$2}}')
 if [ "\\\\\$status" == "DONE." ]
 then 
-rm q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/*.wfc*
-rm q\${{q}}_r\${{r}}/{pf}.save/wfc**.dat
-rm q\${{q}}_r\${{r}}/*.wfc*
+rm _ph0/{pf}.q_\${{q}}/*.wfc*
+rm {pf}.save/wfc**.dat
+rm *.wfc*
 fi
 fi
 EOF1
@@ -1002,6 +1001,7 @@ else
 #LSF
 bsub<job_temp.sh
 fi
+cd ..
 done
 done
 
