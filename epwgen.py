@@ -863,7 +863,7 @@ then
 cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{print $1}')
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 
 #run a phonon calculation for every irreducible q-point
 for ((q=1; q <= \$irr_qs; q++))
@@ -934,7 +934,7 @@ then
 cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{print $1}')
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 
 #get the number of irreducible representations of each q-point and save them in an array
 for ((i=0; i < irr_qs; i++))
