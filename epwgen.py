@@ -1340,7 +1340,7 @@ cp $base_dir/EPM/a2F.in_orig $base_dir/EPM/a2F.in
 cp $base_dir/ISO/eliashberg_iso.in_orig $base_dir/ISO/eliashberg_iso.in
 
 #generate and append uniform k-grid for nscf.in
-perl $base_dir/EPM/kmesh.pl {k_x} {k_y} {k_z} >> $base_dir/EPM/nscf.in
+perl $base_dir/EPM/kmesh.py {k_x} {k_y} {k_z} >> $base_dir/EPM/nscf.in
 
 #append irreducible q-points to epw input files where necessary
 num_of_irr_k=$(sed "2q;d" $ref_dir/PHB/*.dyn0 | awk '{{print $1}}')
@@ -1699,60 +1699,44 @@ fi
 #_________________________________________________________________________________________#
 
 #generating uniform k-mesh. Taken from the wannier90 repository on github (https://github.com/wannier-developers/wannier90/tree/develop/utility)
-kmesh_pl = ['''
-#!/usr/bin/perl -w
+#and rewritten in python
+kmesh_py = ['''
+from argparse import ArgumentParser
+import sys
+parser = ArgumentParser()
+parser.add_argument('grid_size', type=int, nargs=3)
+parser.add_argument('weighted', type=int, default=0, nargs='?')
+args = parser.parse_args()
 
-$numargs  = $#ARGV+1;
+n1 = args.grid_size[0]
+n2 = args.grid_size[1]
+n3 = args.grid_size[2]
+weighted = args.weighted
 
-if (($numargs<3)||($numargs>4)) {
-    print  "usage: n1 n2 n3 [wan]\n";
-    print  "       n1  - divisions along 1st recip vector\n";
-    print  "       n2  - divisions along 2nd recip vector\n";
-    print  "       n3  - divisions along 3rd recip vector\n";
-    print  "       wan - omit the kpoint weight (optional)\n";
-    exit;
-}
+if (n1 <= 0):
+    sys.exit("n1 needs to be > 0")
+if (n2 <= 0):
+    sys.exit("n2 needs to be > 0")
+if (n3 <= 0):
+    sys.exit("n3 needs to be > 0")
+  
+totpts = n1 * n2 * n3
 
-if ($ARGV[0]<=0) {
-    print "n1 must be >0\n";
-    exit;
-}
-if ($ARGV[1]<=0) {
-    print "n2 must be >0\n";
-    exit;
-}
-if ($ARGV[2]<=0) {
-    print "n3 must be >0\n";
-    exit;
-}
-
-$totpts=$ARGV[0]*$ARGV[1]*$ARGV[2];
-
-if ($numargs==3) {
-    print "K_POINTS crystal\n";
-    print $totpts,"\n";
-    for ($x=0; $x<$ARGV[0]; $x++) {
-        for ($y=0; $y<$ARGV[1]; $y++) {
-            for ($z=0; $z<$ARGV[2]; $z++) {
-                printf ("%12.8f%12.8f%12.8f%14.6e \n", $x/$ARGV[0],$y/$ARGV[1],$z/$ARGV[2],1/$totpts);
-            }
-        }
-    }
-}
-
-
-if ($numargs==4) {
-    for ($x=0; $x<$ARGV[0]; $x++) {
-        for ($y=0; $y<$ARGV[1]; $y++) {
-            for ($z=0; $z<$ARGV[2]; $z++) {
-                printf ("%12.8f%12.8f%12.8f \n", $x/$ARGV[0],$y/$ARGV[1],$z/$ARGV[2]);
-            }
-        }
-    }
-}
-
-
-exit;
+if not weighted:
+	print("K_POINTS crystal");
+	print("%d" % (totpts));
+	for i in range(0, n1):
+		for j in range(0, n2):
+			for k in range(0, n3):
+				print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
+    
+else:
+	print("K_POINTS crystal");
+	print("%d" % (totpts));
+	for i in range(0, n1):
+		for j in range(0, n2):
+			for k in range(0, n3):
+				print("%12.8f%12.8f%12.8f%14.6e" % (i/n1,j/n2,k/n3,1/totpts))
 ''']
 
 #postprocessing of the phonon calculations for EPW calculations. Taken from the EPW repository on github
@@ -2020,8 +2004,8 @@ with open(os.path.join(base_dir, 'EPM/ph_lw.in_orig'), 'w') as txt:
     txt.writelines(ph_lw_in)
 with open(os.path.join(base_dir, 'EPM/a2F.in_orig'), 'w') as txt:
     txt.writelines(a2F_in)
-with open(os.path.join(base_dir, 'EPM/kmesh.pl'), 'w') as txt:
-    txt.writelines(kmesh_pl)
+with open(os.path.join(base_dir, 'EPM/kmesh.py'), 'w') as txt:
+    txt.writelines(kmesh_py)
 with open(os.path.join(base_dir, 'ISO/eliashberg_iso.in_orig'), 'w') as txt:
     txt.writelines(eliashberg_iso)
 with open(os.path.join(base_dir, 'ep_bands.sh'), 'w') as txt:
