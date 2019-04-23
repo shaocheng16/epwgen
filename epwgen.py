@@ -37,7 +37,11 @@ ref_bands = False
 #You only need to specify this if ref_bands = True.
 #If ref_bands = True the prefix has to be the same as the one for the phonon calculations
 bands_dir = ''
-
+#list of names of necessary modules. Should include: 
+#    -Quantum Espresso including EPW package
+#    -python
+#    -gnuplot (optional)
+modules = ['quantum_espresso/6.2.1', 'python/2.7.9', 'gnuplot']
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
 #these include wannier, bands_ip, q2r, matdyn
@@ -323,6 +327,13 @@ def generate_fine_grids(_random_sampling, _random_nkf, _random_nqf,
         else:
             grids +=  'filqf = \'' + str(_prefix) + '_band.kpt\'' + '\n' + '    '
     return str(grids)
+
+#function to generate module loading commands 
+def generate_modules(_modules):
+    module_commands = '''module purge \n'''
+    for module in _modules:
+        module_commands += 'module load ' + module + ' &>/dev/null \n'
+    return module_commands
     
 asr_enable = '.false.'
 if asr_type == 'simple' or asr_type == 'crystal' or asr_type == 'one-dim' or asr_type == 'zero-dim':
@@ -736,9 +747,8 @@ calc_end=9
 #to true. You'll find the job script as job.sh in the corresponding directory.
 no_sub=false
 
-#necessary modules: Quantum Espresso (tested for version 6.2.1)
-module purge
-module load quantum_espresso/6.2.1
+#load modules 
+{module_commands}
 
 
 #________________________________EXECUTE_THE_SCRIPT________________________________#
@@ -1240,6 +1250,7 @@ fi
            matdyn_sub = make_job_sub(jobname + '_matdyn',1,ram,4,'matdyn.in','matdyn.out','matdyn.x',jobname + '_q2r'),
            matdyn_cond_sub = check_cond_sub(9),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
+           module_commands = generate_modules(modules),
            split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname, num_of_cpu_ph = num_of_cpu_ph)]
 
 #submission script for all calculations regarding electron-phonon coupling
@@ -1301,10 +1312,8 @@ no_sub=false
 #                   Python
 #                   Perl
 
-module purge
-module load quantum_espresso/6.2.1
-module load python/2.7.9 &>/dev/null
-module load perl/5.24.1 &>/dev/null
+#load modules 
+{module_commands}
 
 #________________________________EXECUTE_THE_SCRIPT________________________________#
 #__________________________________________________________________________________#
@@ -1686,6 +1695,7 @@ fi
            iso_sub = make_job_sub(jobname + '_iso',num_of_cpu_epw,ram,epw_t,'eliashberg.in','eliashberg.out','epw.x',jobname + '_iso_epm'),
            iso_cond_sub = check_cond_sub(10),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
+           module_commands = generate_modules(modules),
            num_of_wan = num_of_wan, wan_min = wan_min, projections_epw = projections_epw, auto_window = auto_window,
            inner_bottom = inner_bottom, inner_top = inner_top, outer_bottom = outer_bottom, outer_top = outer_top,
            ref_bands = ref_bands, bands_dir = bands_dir, k_x = k_x, k_y = k_y, k_z = k_z, pf = pf)]
