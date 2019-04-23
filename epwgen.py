@@ -131,7 +131,7 @@ delta_scf = '1.0d-8'
 #phonon convergence threshold in Ry^2
 delta_ph = '1.0d-14'
 
-#scf diagonalization algorithm ('cg' or 'david'). You might run into problems for EPW calculations if you use david
+#scf diagonalization algorithm ('cg' or 'david'). You might run into problems for EPW calculations if you use cg
 diag_algo = 'david'
 
                     
@@ -1383,10 +1383,8 @@ points=$(head -n1 $ref_dir/ELB/*bands.dat | awk '{{print $5}}')
 #make a temporary file that stores the band energies sequentially per band
 (cat $ref_dir/ELB/*bands.dat.gnu | sed 's/[^ ]*[^ ]//1' | sed 's/\ //g' | sed '/^$/d') > $ref_dir/ELB/bands_temp
 
-#compile and run the cpp script to find the bands
-g++ --std=c++11 -o $ref_dir/ELB/wannier_windows $ref_dir/ELB/wannier_windows.cpp
-chmod u+x $ref_dir/ELB/wannier_windows
-windows=$($ref_dir/ELB/wannier_windows $num_of_wan $bands $points $Ef $ref_dir)
+#run the py script to find the bands
+windows=$(python $ref_dir/ELB/wannier_windows.py $num_of_wan $bands $points $Ef $ref_dir/ELB/bands_temp)
 smallest_inner=$(echo $windows | awk '{{print $1}}')
 largest_inner=$(echo $windows | awk '{{print $2}}')
 smallest_outer=$(echo $windows | awk '{{print $3}}')
@@ -1864,115 +1862,87 @@ os.system('rm _ph0/'+prefix+'.q_'+str(iqpt)+'/*wfc*' )
 
 
 #script to automatically determine the disentanglement windows.
-wannier_windows_cpp = [''' 
-#include<iostream>
-#include<fstream>
-#include<vector>
-#include<string>
-int main(int argc, char* argv[])
-{{
-    if (argc != 6)
-    {{
-    return 1;
-    }}
-    //read command line
-    int num_of_wan = std::strtol(argv[1], NULL, 10);
-    int bands = std::strtol(argv[2], NULL, 10);
-    int points = std::strtol(argv[3], NULL, 10);
-    double Ef = std::strtod(argv[4], NULL);
-    std::string dir = argv[5];
-    std::string bands_file = dir + "/ELB/bands_temp";
+wannier_windows_py = [''' 
+from argparse import ArgumentParser
+import sys
 
-    //read the band energies
-    std::ifstream ifs(bands_file);
-    double e(0);
-    std::vector<double> e_vec(0);
-    while (ifs >> e)
-    {{
-        e_vec.push_back(e);
-    }}
-    
-    //get the index (wan_min) of the first band that crosses the fermi energy (indices starting at 1)
-    int wan_min(0);
-    for (int i = 0; i < bands; i++)
-    {{
-        for (int j = 0; j < points; j++)
-        {{
-            int index = i*points + j;
-            if (e_vec[index] >= Ef)
-            {{
-                wan_min = i;
-                break;
-            }}
-        }}
-        if (wan_min != 0){{break;}}
-    }}
-    
+#read command line
+parser = ArgumentParser()
+parser.add_argument('num_of_wan', type=int)
+parser.add_argument('bands', type=int)
+parser.add_argument('points', type=int)
+parser.add_argument('Ef', type=float)
+parser.add_argument('bands_file', type=str)
+args = parser.parse_args()
 
-    //get the outer window by finding the smallest and largest values of the specified bands
-    double smallest_outer = e_vec[wan_min*points];
-    double largest_outer = smallest_outer;
-    for (int i = wan_min*points; i < (wan_min+num_of_wan)*points; i++)
-    {{
-        if (e_vec[i] < smallest_outer)
-        {{
-            smallest_outer = e_vec[i];
-        }}
-        else if (e_vec[i] > largest_outer)
-        {{
-            largest_outer = e_vec[i];
-        }}
-    }}
+#read the band energies
+num_of_wan = args.num_of_wan
+bands = args.bands
+points = args.points
+Ef = args.Ef
+bands_file = args.bands_file
 
-    //find the "disturbing" bands that fall into the outer window and do not belong to the specified bands
-    std::vector<int> dist_bands(0);
-    for (int i = 0; i < bands; i++)
-    {{
-        if (i+1 > wan_min && i+1 <= wan_min+num_of_wan){{continue;}}
-        else
-        {{
-        for (int j = 0; j < points; j++)
-        {{
-            int index = i*points + j;
-            if (e_vec[index] > smallest_outer && e_vec[index] < largest_outer)
-            {{
-                dist_bands.push_back(i);
-                break;
-            }}
-        }}
-        }}
-    }}
+e_vec = []
 
-    //find the inner window using the disturbing bands
-    double smallest_inner = smallest_outer;
-    double largest_inner = largest_outer;
-    for (unsigned int i = 0; i < dist_bands.size(); i++)
-    {{
-        double smallest_local = e_vec[i*points];
-        double largest_local = smallest_local;
-        for (int j = 0; j < points; j++)
-        {{
-            int index = (dist_bands[i] - 1)*points + j;
-            //check if current point of the disturbing band lies in the inner window
-            if (e_vec[index] <= largest_inner && e_vec[index] >= smallest_inner)
-            {{
-                //if it does, check if it lies closer to the top or bottom of the window and ajdust the window accordingly
-                if ((e_vec[index] - smallest_inner) <= (largest_inner - e_vec[index]))
-                {{
-                    smallest_inner = e_vec[index];
-                }}
-                else
-                {{
-                    largest_inner = e_vec[index];
-                }}
-            }}           
-        }}
-    }}
-    std::cout << smallest_inner << '\t' << largest_inner << '\t'
-              << smallest_outer << '\t' << largest_outer << '\t'
-              << wan_min << std::endl;
-    return 0;
-}}
+ifs = open(bands_file, "r")
+for e in ifs:
+	e_vec.append(float(e))
+	
+
+#get the index (wan_min) of the first band that crosses the fermi energy (indices starting at 1)
+wan_min = 0
+for i in range(0, bands):
+	for j in range(0, points):
+		index = i*points + j
+		if e_vec[index] >= Ef:
+			wan_min = i
+			break
+	if not wan_min == 0:
+		break	
+
+
+#get the outer window by finding the smallest and largest values of the specified bands
+smallest_outer = e_vec[wan_min*points]
+largest_outer = smallest_outer
+for i in range(wan_min*points, (wan_min+num_of_wan)*points):
+	if e_vec[i] < smallest_outer:
+		smallest_outer = e_vec[i]
+	elif e_vec[i] > largest_outer:
+		largest_outer = e_vec[i]
+		
+		
+		
+#find the "disturbing" bands that fall into the outer window and do not belong to the specified bands
+dist_bands = []  
+for i in range(0, bands):
+	if i+1 > wan_min and i+1 <= wan_min + num_of_wan:
+		continue
+	else:
+		for j in range(0, points):
+			index = i*points + j
+			if e_vec[index] > smallest_outer and e_vec[index] < largest_outer:
+				dist_bands.append(i)
+				break
+   
+  
+#find the inner window using the disturbing bands
+smallest_inner = smallest_outer;
+largest_inner = largest_outer;
+for i in range(0, len(dist_bands)):
+	smallest_local = e_vec[i*points]
+	largest_local = smallest_local
+	for j in range(0, points):
+		index = (dist_bands[i] - 1)*points + j
+		#check if current point of the disturbing band lies in the inner window
+		if e_vec[index] <= largest_innder and e_vec[index] >= smallest_inner:
+			#if it does, check if it lies closer to the top or bottom of the window and ajdust the window accordingly
+			if e_vec[index] - smallest_inner <= largest_inner - e_vec[index]:
+				smallest_inner = e_vec[index]
+			else:
+				largest_inner = e_vec[index]
+			
+
+print("%12.8f \t %12.8f \t %12.8f \t %12.8f \t %d" %(smallest_inner, largest_inner, smallest_outer, largest_outer, wan_min))
 ''']
 
 #_________________________________________________________________________________________#
@@ -1984,8 +1954,8 @@ with open(os.path.join(base_dir, 'ELB/bands.in'), 'w') as txt:
     txt.writelines(bands_in)
 with open(os.path.join(base_dir, 'ELB/bands_ip.in'), 'w') as txt:
     txt.writelines(bands_ip_in)
-with open(os.path.join(base_dir, 'ELB/wannier_windows.cpp'), 'w') as txt:
-    txt.writelines(wannier_windows_cpp)
+with open(os.path.join(base_dir, 'ELB/wannier_windows.py'), 'w') as txt:
+    txt.writelines(wannier_windows_py)
 with open(os.path.join(base_dir, 'PHB/ph.in'), 'w') as txt:
     txt.writelines(ph_in)
 with open(os.path.join(base_dir, 'PHB/q2r.in'), 'w') as txt:
