@@ -121,7 +121,7 @@ random_nqf = 500
 
 #number of bands calculated. Set to 0 if this should be determined automatically.
 num_of_bands = 0    
-#amount of additional charge per unit cell (electrons negative, holes positive). currently only electron doping possible
+#amount of additional charge per unit cell (electrons negative, holes positive).
 nelect = -0.1
 #accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable)
 asr_type = 'simple'
@@ -1880,7 +1880,6 @@ os.system('rm _ph0/'+prefix+'.q_'+str(iqpt)+'/*wfc*' )
 
 
 #script to automatically determine the disentanglement windows.
-#holes not implemented
 wannier_windows_cpp = [''' 
 #include<iostream>
 #include<fstream>
@@ -1909,7 +1908,7 @@ int main(int argc, char* argv[])
         e_vec.push_back(e);
     }}
     
-    //get the index of the highest unwannierized band (indices starting at 0)
+    //get the index (wan_min) of the first band that crosses the fermi energy (indices starting at 1)
     int wan_min(0);
     for (int i = 0; i < bands; i++)
     {{
@@ -1925,7 +1924,6 @@ int main(int argc, char* argv[])
         if (wan_min != 0){{break;}}
     }}
     
-    //if holes -> wan_min -= num_of_Wan
 
     //get the outer window by finding the smallest and largest values of the specified bands
     double smallest_outer = e_vec[wan_min*points];
