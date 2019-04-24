@@ -41,7 +41,7 @@ bands_dir = ''
 #    -Quantum Espresso including EPW package
 #    -python
 #    -gnuplot (optional)
-modules = ['quantum_espresso/6.2.1', 'python/2.7.9', 'gnuplot']
+modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
 #these include wannier, bands_ip, q2r, matdyn
@@ -1349,7 +1349,7 @@ cp $base_dir/EPM/a2F.in_orig $base_dir/EPM/a2F.in
 cp $base_dir/ISO/eliashberg_iso.in_orig $base_dir/ISO/eliashberg_iso.in
 
 #generate and append uniform k-grid for nscf.in
-perl $base_dir/EPM/kmesh.py {k_x} {k_y} {k_z} >> $base_dir/EPM/nscf.in
+python $base_dir/EPM/kmesh.py {k_x} {k_y} {k_z} >> $base_dir/EPM/nscf.in
 
 #append irreducible q-points to epw input files where necessary
 num_of_irr_k=$(sed "2q;d" $ref_dir/PHB/*.dyn0 | awk '{{print $1}}')
@@ -1721,26 +1721,26 @@ n2 = args.grid_size[1]
 n3 = args.grid_size[2]
 weighted = args.weighted
 
-if (n1 <= 0):
+if n1 <= 0:
     sys.exit("n1 needs to be > 0")
-if (n2 <= 0):
+if n2 <= 0:
     sys.exit("n2 needs to be > 0")
-if (n3 <= 0):
+if n3 <= 0:
     sys.exit("n3 needs to be > 0")
   
 totpts = n1 * n2 * n3
 
 if not weighted:
-	print("K_POINTS crystal");
-	print("%d" % (totpts));
+	print("K_POINTS crystal")
+	print("%d" % (totpts))
 	for i in range(0, n1):
 		for j in range(0, n2):
 			for k in range(0, n3):
 				print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
     
 else:
-	print("K_POINTS crystal");
-	print("%d" % (totpts));
+	print("K_POINTS crystal")
+	print("%d" % (totpts))
 	for i in range(0, n1):
 		for j in range(0, n2):
 			for k in range(0, n3):
