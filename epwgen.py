@@ -9,7 +9,7 @@ jobname = pf
 pps_dir = 'ppsdir' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 8
-#number of precessors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
+#number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
 #irreducible modes, each of these calculations will be run with the specified amount of CPUs)
 num_of_cpu_ph = 8
 #number of processors to be used for any epw calculation
@@ -137,6 +137,9 @@ delta_ph = '1.0d-14'
 
 #scf diagonalization algorithm ('cg' or 'david'). You might run into problems for EPW calculations if you use cg
 diag_algo = 'david'
+
+#spin-orbit coupling
+soc = True
 
                     
 
@@ -360,6 +363,12 @@ if ref_bands == True:
     dvscf_dir = bands_dir +  '/PHB/save'
 else:
     ref_bands = 'false'
+
+noncolin_enable = '.false'
+lspinorb_enable = '.false'
+if soc == True:
+	noncolin_enable = '.true.'
+	lspinorb_enable = '.true.'
    
         
 #_______________________________________INPUT_LISTS_______________________________________#
@@ -379,7 +388,9 @@ scf_in = ['''
     ecutwfc     = {e_cut}               
     occupations = 'smearing'           
     degauss     = 7.35d-4               
-    tot_charge  = {nelect}              
+    tot_charge  = {nelect}   
+    noncolin    = '{noncolin_enable}'
+    lspinorb    = '{lspinorb_enable}'
 /
 &ELECTRONS
     conv_thr    = {delta_scf}              
@@ -391,7 +402,8 @@ scf_in = ['''
 K_POINTS automatic
 {k_x} {k_y} {k_z} 0 0 0
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
-           num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect, delta_scf = delta_scf,
+           num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
+	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, delta_scf = delta_scf,
            diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions, k_x = k_x, k_y = k_y, k_z = k_z)]
 
 bands_in = ['''
@@ -410,7 +422,9 @@ bands_in = ['''
     occupations = 'smearing'            
     degauss     = 7.35d-4               
     tot_charge  = {nelect}              
-    nbnd        = {num_of_bands}        
+    nbnd        = {num_of_bands}  
+    noncolin    = '{noncolin_enable}'
+    lspinorb    = '{lspinorb_enable}'
 /
 &ELECTRONS
     conv_thr    = {delta_scf}               
@@ -424,7 +438,8 @@ K_POINTS crystal_b
 {kpoints}
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
-           num_of_bands = num_of_bands, delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions,
+	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, num_of_bands = num_of_bands,
+	   delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions,
            num_of_hsp = num_of_hsp, kpoints = kpoints)]
 
 bands_ip_in = ['''
@@ -489,7 +504,9 @@ nscf_in = ['''
     degauss     = 7.35d-4               
     tot_charge  = {nelect}              
     nbnd        = {num_of_bands}
-    nosym       = .true.                
+    nosym       = .true.     
+    noncolin    = '{noncolin_enable}'
+    lspinorb    = '{lspinorb_enable}'
 /
 &ELECTRONS
     conv_thr    = {delta_scf}               
@@ -500,6 +517,7 @@ nscf_in = ['''
 {atom_positions}
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
+	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, 
            num_of_bands = num_of_bands, delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions)]
 
 wannier_in = ['''
