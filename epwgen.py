@@ -1349,7 +1349,7 @@ cp $base_dir/EPM/a2F.in_orig $base_dir/EPM/a2F.in
 cp $base_dir/ISO/eliashberg_iso.in_orig $base_dir/ISO/eliashberg_iso.in
 
 #generate and append uniform k-grid for nscf.in
-python $base_dir/EPM/kmesh.py {k_x} {k_y} {k_z} >> $base_dir/EPM/nscf.in
+python $base_dir/EPM/kmesh.py {k_x} {k_y} {k_z} 1 >> $base_dir/EPM/nscf.in
 
 #append irreducible q-points to epw input files where necessary
 num_of_irr_k=$(sed "2q;d" $ref_dir/PHB/*.dyn0 | awk '{{print $1}}')
