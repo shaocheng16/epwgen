@@ -804,7 +804,7 @@ cat > job.sh << EOF
 num_of_bands=\$(grep nbnd bands.in | awk '{{print \$3}}')
 if [ \$num_of_bands -eq 0 ]
 then
-    num_of_bands=\$(grep "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
+    num_of_bands=\$(grep -m1 "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
     line=\$(grep -n nbnd bands.in | cut -d : -f 1)
     sed -i "\${{line}}s/[^ ]*[^ ]/\${{num_of_bands}}/3" bands.in
 fi
