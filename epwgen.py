@@ -473,7 +473,7 @@ q2r_in = ['''
    zasr='{asr_type}'
    flfrc='{pf}.fc'           
 /
-'''.format(pf = pf, extension = extension, asr_type = asr_type)]
+'''.format(pf = pf, asr_type = asr_type)]
 
 matdyn_in = ['''
 &INPUT
