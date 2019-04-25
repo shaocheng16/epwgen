@@ -1782,9 +1782,9 @@ from xml.dom import minidom
 
 # Convert the dyn files to the xml form, for SOC case - Shunhong Zhang (USTC)
 def dyn2xml(prefix):
-    ndyn=int(os.popen('head -2 {0}.dyn0|tail -1'.format(prefix)).read())
+    ndyn=int(os.popen('head -2 {{0}}.dyn0|tail -1'.format(prefix)).read())
     for idyn in range(1,ndyn+1):
-        print '{0}.dyn{1} to {0}.dyn_q{1}.xml'.format(prefix,idyn)
+        print '{{0}}.dyn{{1}} to {{0}}.dyn_q{{1}}.xml'.format(prefix,idyn)
         dynmat=dyn(prefix,idyn)
         dynmat._write_xml()
 def get_geom_info():
@@ -1803,7 +1803,7 @@ class dyn(object):
     def __init__(self,prefix,idyn):
         self._prefix=prefix
         self._idyn=idyn
-        fil='{0}.dyn{1}'.format(prefix,idyn)
+        fil='{{0}}.dyn{{1}}'.format(prefix,idyn)
         f=open(fil)
         self._comment=f.readline()
         f.readline()
@@ -1830,7 +1830,7 @@ class dyn(object):
             line=f.readline().split()
             self._atom_type[i]=int(line[1])
             for j in range(3): self._pos[i,j]=float(line[j+2])
-        self._nqpt=int(os.popen('grep -c "Dynamical  Matrix" {0}'.format(fil)).read().split()[0])
+        self._nqpt=int(os.popen('grep -c "Dynamical  Matrix" {{0}}'.format(fil)).read().split()[0])
         self._qpt=[]
         self._dynmat=np.zeros((self._nqpt,self._natom,self._natom,3,3,2),float)
         f.readline()
@@ -1876,7 +1876,7 @@ class dyn(object):
         cell_dim.setAttribute('type','real')
         cell_dim.setAttribute('size','6')
         for i in range(6):
-            cell_dim.appendChild(doc.createTextNode('{0:16.10f}'.format(self._cell_dim[i])))
+            cell_dim.appendChild(doc.createTextNode('{{0:16.10f}}'.format(self._cell_dim[i])))
         geom_info.appendChild(cell_dim)
         tags=['AT','BG']
         for tag,lat in zip(tags,(self._at,self._bg)):
@@ -1885,31 +1885,31 @@ class dyn(object):
             inode.setAttribute('size','9')
             inode.setAttribute('columns','3')
             for i in range(3):
-                text=' '.join(['{0:16.10f}'.format(item) for item in lat[i]])
+                text=' '.join(['{{0:16.10f}}'.format(item) for item in lat[i]])
                 inode.appendChild(doc.createTextNode(text))
             geom_info.appendChild(inode)
         volm=doc.createElement('UNIT_CELL_VOLUME_AU')
         volm.setAttribute('type','real')
         volm.setAttribute('size','1')
-        volm.appendChild(doc.createTextNode('{0:16.10f}'.format(self._volm)))
+        volm.appendChild(doc.createTextNode('{{0:16.10f}}'.format(self._volm)))
         geom_info.appendChild(volm)
         for itype in range(self._ntype):
-            nt=doc.createElement('TYPE_NAME.{0}'.format(itype+1))
+            nt=doc.createElement('TYPE_NAME.{{0}}'.format(itype+1))
             nt.setAttribute('type','character')
             nt.setAttribute('size','1')
             nt.setAttribute('len','3')
-            nt.appendChild(doc.createTextNode('{0}'.format(self._species[itype])))
-            na=doc.createElement('MASS.{0}'.format(itype+1))
+            nt.appendChild(doc.createTextNode('{{0}}'.format(self._species[itype])))
+            na=doc.createElement('MASS.{{0}}'.format(itype+1))
             na.setAttribute('type','real')
             na.setAttribute('size','1')
-            na.appendChild(doc.createTextNode('{0:16.10f}'.format(self._mass[itype])))
+            na.appendChild(doc.createTextNode('{{0:16.10f}}'.format(self._mass[itype])))
             geom_info.appendChild(nt)
             geom_info.appendChild(na)
         for iat in range(self._natom):
-            at=doc.createElement('ATOM.{0}'.format(iat+1))
-            at.setAttribute('SPECIES','{0}'.format(self._species[self._atom_type[iat]-1]))
+            at=doc.createElement('ATOM.{{0}}'.format(iat+1))
+            at.setAttribute('SPECIES','{{0}}'.format(self._species[self._atom_type[iat]-1]))
             at.setAttribute('INDEX',str(iat+1))
-            pos=' '.join(['{0:16.10f}'.format(item) for item in self._pos[iat]])
+            pos=' '.join(['{{0:16.10f}}'.format(item) for item in self._pos[iat]])
             at.setAttribute('TAU',pos)
             geom_info.appendChild(at)
         nqpt=doc.createElement('NUMBER_OF_Q')
@@ -1919,44 +1919,44 @@ class dyn(object):
         geom_info.appendChild(nqpt)
         root.appendChild(geom_info)
         for iqpt in range(self._nqpt):
-            dynmat=doc.createElement('DYNAMICAL_MAT_.{0}'.format(iqpt+1))
+            dynmat=doc.createElement('DYNAMICAL_MAT_.{{0}}'.format(iqpt+1))
             qpt=doc.createElement('Q_POINT')
             qpt.setAttribute('type','real')
             qpt.setAttribute('size','3')
             qpt.setAttribute('columns','3')
-            tnode=doc.createTextNode(' '.join(['{0:16.10f}'.format(item) for item in self._qpt[iqpt]]))
+            tnode=doc.createTextNode(' '.join(['{{0:16.10f}}'.format(item) for item in self._qpt[iqpt]]))
             qpt.appendChild(tnode)
             dynmat.appendChild(qpt)
             for iat in range(self._natom):
                 for jat in range(self._natom):
-                    ph=doc.createElement('PHI.{0}.{1}'.format(iat+1,jat+1))
+                    ph=doc.createElement('PHI.{{0}}.{{1}}'.format(iat+1,jat+1))
                     ph.setAttribute('type','complex')
                     ph.setAttribute('size','9')
                     ph.setAttribute('columns','3')
                     for i in range(3):
                         for j in range(3):
-                            text='{0:16.10f} {1:16.10f}'.format(self._dynmat[iqpt,iat,jat,i,j,0],self._dynmat[iqpt,iat,jat,i,j,1])
+                            text='{{0:16.10f}} {{1:16.10f}}'.format(self._dynmat[iqpt,iat,jat,i,j,0],self._dynmat[iqpt,iat,jat,i,j,1])
                             ph.appendChild(doc.createTextNode(text))
                     dynmat.appendChild(ph)
             root.appendChild(dynmat)
         mode=doc.createElement('FREQUENCIES_THZ_CMM1')
         for iomega in range(self._natom*3):
-            inode=doc.createElement('OMEGA.{0}'.format(iomega+1))
+            inode=doc.createElement('OMEGA.{{0}}'.format(iomega+1))
             inode.setAttribute('type','real')
             inode.setAttribute('size','2')
             inode.setAttribute('columns','2')
-            inode.appendChild(doc.createTextNode('{0:16.10f} {1:16.10f}'.format(self._freq[iomega,0],self._freq[iomega,1])))
-            idisp=doc.createElement('DISPLACEMENT.{0}'.format(iomega+1))
+            inode.appendChild(doc.createTextNode('{{0:16.10f}} {{1:16.10f}}'.format(self._freq[iomega,0],self._freq[iomega,1])))
+            idisp=doc.createElement('DISPLACEMENT.{{0}}'.format(iomega+1))
             idisp.setAttribute('tpye','complex')
             idisp.setAttribute('size','3')
             for iat in range(self._natom):
                 for j in range(3):
-                    tnode=doc.createTextNode('{0:16.10f} {1:16.10f}'.format(self._disp[iomega,iat,j,0],self._disp[iomega,iat,j,1]))
+                    tnode=doc.createTextNode('{{0:16.10f}} {{1:16.10f}}'.format(self._disp[iomega,iat,j,0],self._disp[iomega,iat,j,1]))
                     idisp.appendChild(tnode)
             mode.appendChild(inode)
             mode.appendChild(idisp)
         root.appendChild(mode)
-        fp = open('{0}.dyn_q{1}.xml'.format(self._prefix,self._idyn), 'w')
+        fp = open('{{0}}.dyn_q{{1}}.xml'.format(self._prefix,self._idyn), 'w')
         doc.writexml(fp, addindent='  ', newl='\n')
 
 # Return the number of q-points in the IBZ
@@ -1997,7 +1997,7 @@ def isSEQ(prefix):
   return lseq
     
 # Enter the number of irr. q-points
-prefix = '{pf}' #get the prefix directly from this generation script
+prefix = '{pf}' #get the prefix directly from the input generation script (Noe Mascello)
 
 # Test if SOC
 SOC = hasSOC(prefix)
@@ -2007,7 +2007,7 @@ if SOC=='true':
   user_input = raw_input('Calculation with SOC detected. Do you want to convert dyn in XML format [y/n]?\n')
   if str(user_input) == 'y':
     dyn2xml(prefix)
-    os.system('mv {0}.dyn*.xml save'.format(prefix))
+    os.system('mv {{0}}.dyn*.xml save'.format(prefix))
 
 # If no SOC detected, do you want to convert into XML format 
 if SOC=='false':
@@ -2015,7 +2015,7 @@ if SOC=='false':
   if str(user_input) == 'y':
     SOC = 'true'
     dyn2xml(prefix)
-    os.system('mv {0}.dyn*.xml save'.format(prefix))
+    os.system('mv {{0}}.dyn*.xml save'.format(prefix))
 
 # Test if seq. or parallel run
 SEQ = isSEQ(prefix)
@@ -2083,7 +2083,6 @@ for iqpt in np.arange(1,nqpt+1):
       else:
         os.system('cp _ph0/'+prefix+'.q_'+str(iqpt)+'/'+prefix+'.dvscf1 save/'+prefix+'.dvscf_q'+label)
         os.system('rm _ph0/'+prefix+'.q_'+str(iqpt)+'/*wfc*' )
-
 '''.format(pf = pf)]
 
 
