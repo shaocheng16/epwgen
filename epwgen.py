@@ -466,14 +466,10 @@ ph_in = ['''
     tr2_ph   = {delta_ph}
     recover = .true.
 '''.format(pf = pf, q_x = q_x, q_y = q_y, q_z = q_z, asr_enable = asr_enable, delta_ph = delta_ph)]
-
-extension = 'dyn'
-if soc == True:
-	extension += '.xml'	
 	
 q2r_in = ['''
 &INPUT
-   fildyn='{pf}.{extension}'
+   fildyn='{pf}.dyn'
    zasr='{asr_type}'
    flfrc='{pf}.fc'           
 /
@@ -1205,12 +1201,6 @@ then
 
 cat > job.sh << EOF
 {q2r_sub}
-#check if there are xml dyns (in case of SOC). copy dyn0 to dyn0.xml in that case
-if [ -f {pf}.dyn1.xml ]
-then
-	cp {pf}.dyn0 {pf}.dyn0.xml
-fi
-mpirun q2r.x -npool 1 -in q2r.in > q2r.out
 EOF
 
 {q2r_cond_sub}
@@ -1273,7 +1263,7 @@ fi
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
-           q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'q2r.in','q2r.out','',jobname + '_ph_collect'),
+           q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'q2r.in','q2r.out','q2r.x',jobname + '_ph_collect'),
            q2r_cond_sub = check_cond_sub(8),
            matdyn_sub = make_job_sub(jobname + '_matdyn',1,ram,4,'matdyn.in','matdyn.out','matdyn.x',jobname + '_q2r'),
            matdyn_cond_sub = check_cond_sub(9),
