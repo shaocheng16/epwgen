@@ -389,8 +389,8 @@ scf_in = ['''
     occupations = 'smearing'           
     degauss     = 7.35d-4               
     tot_charge  = {nelect}   
-    noncolin    = '{noncolin_enable}'
-    lspinorb    = '{lspinorb_enable}'
+    noncolin    = {noncolin_enable}
+    lspinorb    = {lspinorb_enable}
 /
 &ELECTRONS
     conv_thr    = {delta_scf}              
@@ -423,8 +423,8 @@ bands_in = ['''
     degauss     = 7.35d-4               
     tot_charge  = {nelect}              
     nbnd        = {num_of_bands}  
-    noncolin    = '{noncolin_enable}'
-    lspinorb    = '{lspinorb_enable}'
+    noncolin    = {noncolin_enable}
+    lspinorb    = {lspinorb_enable}
 /
 &ELECTRONS
     conv_thr    = {delta_scf}               
@@ -505,8 +505,8 @@ nscf_in = ['''
     tot_charge  = {nelect}              
     nbnd        = {num_of_bands}
     nosym       = .true.     
-    noncolin    = '{noncolin_enable}'
-    lspinorb    = '{lspinorb_enable}'
+    noncolin    = {noncolin_enable}
+    lspinorb    = {lspinorb_enable}
 /
 &ELECTRONS
     conv_thr    = {delta_scf}               
