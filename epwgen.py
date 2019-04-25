@@ -364,8 +364,8 @@ if ref_bands == True:
 else:
     ref_bands = 'false'
 
-noncolin_enable = '.false'
-lspinorb_enable = '.false'
+noncolin_enable = '.false.'
+lspinorb_enable = '.false.'
 if soc == True:
 	noncolin_enable = '.true.'
 	lspinorb_enable = '.true.'
