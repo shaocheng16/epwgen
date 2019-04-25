@@ -467,13 +467,17 @@ ph_in = ['''
     recover = .true.
 '''.format(pf = pf, q_x = q_x, q_y = q_y, q_z = q_z, asr_enable = asr_enable, delta_ph = delta_ph)]
 
+extension = 'dyn'
+if soc == True:
+	extension += '.xml'	
+	
 q2r_in = ['''
 &INPUT
-   fildyn='{pf}.dyn'
+   fildyn='{pf}.{extension}'
    zasr='{asr_type}'
    flfrc='{pf}.fc'           
 /
-'''.format(pf = pf, asr_type = asr_type)]
+'''.format(pf = pf, extension = extension, asr_type = asr_type)]
 
 matdyn_in = ['''
 &INPUT
