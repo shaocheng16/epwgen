@@ -1962,7 +1962,7 @@ for i in range(0, len(dist_bands)):
 	for j in range(0, points):
 		index = (dist_bands[i] - 1)*points + j
 		#check if current point of the disturbing band lies in the inner window
-		if e_vec[index] <= largest_innder and e_vec[index] >= smallest_inner:
+		if e_vec[index] <= largest_innr and e_vec[index] >= smallest_inner:
 			#if it does, check if it lies closer to the top or bottom of the window and ajdust the window accordingly
 			if e_vec[index] - smallest_inner <= largest_inner - e_vec[index]:
 				smallest_inner = e_vec[index]
