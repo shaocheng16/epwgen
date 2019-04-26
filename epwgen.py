@@ -78,9 +78,8 @@ num_of_atom_types = 2
 #'''
 atoms = '''                            
 ATOMIC_SPECIES
-K 39.0983 K_ONCV_PBE_FR_4.0.upf
-Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
-O 15.9994 O_ONCV_PBE_FR_4.0.upf
+W 183.84 W_ONCV_LDA-4.0.upf
+O 15.9994 O_ONCV_LDA-3.0.upf
 '''
 
 #Atomic positions in relative positions to the lattice vectors
