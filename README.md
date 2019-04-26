@@ -21,10 +21,10 @@ Any calculation parameters that are missing or have been "hardcoded" should be e
 
 Requirements:
   -Cluster with IBM LSF workload scheduler. Positions of LSF relevant lines that need to be changed for a different scheduler     (e.g. SLURM) are denoted by an "LSF" comment.
-  -Quantum Espresso v. 6.4
+  -Quantum Espresso
   -python3
   -environment modules
 
-Solving the Eliashberg equations does not work at the moment.
+Solving the Eliashberg equations and spin-orbit coupling does not work at the moment.
 
 The script contains a crude but quick and working example. You only need to specify the absolute path to the pseudopotentials on your cluster and the module names.
