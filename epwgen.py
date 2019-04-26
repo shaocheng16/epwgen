@@ -1,12 +1,12 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'WO3'  
+pf = 'KTO_SOC'  
 #name of the parent directory created by this script
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
-pps_dir = 'ppsdir' 
+pps_dir = '/cluster/scratch/mnoe' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 8
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
@@ -58,15 +58,15 @@ modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
 #'''
 lattice = '''
 CELL_PARAMETERS angstrom
-        3.7959315000      0.0000000000         0.0000000000
-        0.0000000000      3.7959315000         0.0000000000
-        0.0000000000      0.0000000000         3.7959315000
+        4.0000000000      0.0000000000         0.0000000000
+        0.0000000000      4.0000000000         0.0000000000
+        0.0000000000      0.0000000000         4.0000000000
 '''
 #number of atoms in the unit cell
-num_of_atoms = 4
+num_of_atoms = 5
 
 #number of distinct atom types in unit cell
-num_of_atom_types = 2                 
+num_of_atom_types = 3                 
 
 #atom type specification as required in pw.x input file
 #Syntax:
@@ -78,8 +78,9 @@ num_of_atom_types = 2
 #'''
 atoms = '''                            
 ATOMIC_SPECIES
-W 183.84 W_ONCV_LDA-4.0.upf
-O 15.9994 O_ONCV_LDA-3.0.upf
+K 39.0983 K_ONCV_PBE_FR_4.0.upf
+Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
+O 15.9994 O_ONCV_PBE_FR_4.0.upf
 '''
 
 #Atomic positions in relative positions to the lattice vectors
@@ -140,7 +141,7 @@ delta_ph = '1.0d-14'
 diag_algo = 'david'
 
 #spin-orbit coupling
-soc = False
+soc = True
 
                     
 
@@ -166,11 +167,11 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized. 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 3
+num_of_wan = 6
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['W:l=2,mr=2,3,5']
+wannier_init = ['random']
 
 #automatic wannierization window determination
 auto_window = True
