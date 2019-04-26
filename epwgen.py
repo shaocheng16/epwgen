@@ -2097,13 +2097,13 @@ parser.add_argument('Ef', type=float)
 parser.add_argument('bands_file', type=str)
 args = parser.parse_args()
 
-#read the band energies
 num_of_wan = args.num_of_wan
 bands = args.bands
 points = args.points
 Ef = args.Ef
 bands_file = args.bands_file
 
+#read the band energies
 e_vec = []
 
 ifs = open(bands_file, "r")
@@ -2121,7 +2121,8 @@ for i in range(0, bands):
 			break
 	if not wan_min == 0:
 		break	
-
+if wan_min + num_of_wan > bands:
+	sys.exit("You chose too many bands to wannierize)
 
 #get the outer window by finding the smallest and largest values of the specified bands
 smallest_outer = e_vec[wan_min*points]
