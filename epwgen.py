@@ -78,8 +78,9 @@ num_of_atom_types = 2
 #'''
 atoms = '''                            
 ATOMIC_SPECIES
-W 183.84 W_ONCV_LDA-4.0.upf
-O 15.9994 O_ONCV_LDA-3.0.upf
+K 39.0983 K_ONCV_PBE_FR_4.0.upf
+Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
+O 15.9994 O_ONCV_PBE_FR_4.0.upf
 '''
 
 #Atomic positions in relative positions to the lattice vectors
@@ -94,15 +95,16 @@ O 15.9994 O_ONCV_LDA-3.0.upf
 
 atom_positions = '''
 ATOMIC_POSITIONS crystal
-  W 0.5000000000000000  0.5000000000000000  0.5000000000000000
-  O 0.5000000000000000  0.5000000000000000  0.0000000000000000
-  O 0.5000000000000000  0.0000000000000000  0.5000000000000000
-  O 0.0000000000000000  0.5000000000000000  0.5000000000000000
+  K  0.5000000000000000  0.5000000000000000  0.5000000000000000
+  Ta 0.0000000000000000  0.0000000000000000  0.0000000000000000
+  O  0.5000000000000000  0.0000000000000000  0.0000000000000000
+  O  0.0000000000000000  0.5000000000000000  0.0000000000000000
+  O  0.0000000000000000  0.0000000000000000  0.5000000000000000
 '''
 
 #____________________CALCULATION_PARAMETERS____________________#
 #plane wave cut-off energy in Ry
-e_cut = 70  
+e_cut = 60  
 #coarse k-grid size
 k_x = 6
 k_y = 6
@@ -139,7 +141,7 @@ delta_ph = '1.0d-14'
 diag_algo = 'david'
 
 #spin-orbit coupling
-soc = True
+soc = False
 
                     
 
