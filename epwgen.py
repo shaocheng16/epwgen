@@ -6,7 +6,7 @@ base_dir = pf
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
-pps_dir = '/cluster/scratch/mnoe' 
+pps_dir = 'ppsdir' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 8
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
