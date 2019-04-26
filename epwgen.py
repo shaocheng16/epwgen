@@ -2124,7 +2124,7 @@ for i in range(0, bands):
 	if not wan_min == 0:
 		break	
 if wan_min + num_of_wan > bands:
-	sys.exit("You chose too many bands to wannierize)
+	sys.exit("You chose too many bands to wannierize")
 
 #get the outer window by finding the smallest and largest values of the specified bands
 smallest_outer = e_vec[wan_min*points]
