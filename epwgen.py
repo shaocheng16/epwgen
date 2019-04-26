@@ -1784,7 +1784,7 @@ from xml.dom import minidom
 def dyn2xml(prefix):
     ndyn=int(os.popen('head -2 {{0}}.dyn0|tail -1'.format(prefix)).read())
     for idyn in range(1,ndyn+1):
-        print('{0}.dyn{1} to {0}.dyn_q{1}.xml'.format(prefix,idyn)')
+        print('{{0}}.dyn{{1}} to {{0}}.dyn_q{{1}}.xml'.format(prefix,idyn)')
         dynmat=dyn(prefix,idyn)
         dynmat._write_xml()
 def get_geom_info():
@@ -1907,7 +1907,7 @@ class dyn(object):
             geom_info.appendChild(na)
         for iat in range(self._natom):
             at=doc.createElement('ATOM.{{0}}'.format(iat+1))
-            at.setAttribute('SPECIES','{0}'.format(self._species[self._atom_type[iat]-1]))
+            at.setAttribute('SPECIES','{{0}}'.format(self._species[self._atom_type[iat]-1]))
             at.setAttribute('INDEX',str(iat+1))
             pos=' '.join(['{{0:16.10f}}'.format(item) for item in self._pos[iat]])
             at.setAttribute('TAU',pos)
@@ -1941,7 +1941,7 @@ class dyn(object):
             root.appendChild(dynmat)
         mode=doc.createElement('FREQUENCIES_THZ_CMM1')
         for iomega in range(self._natom*3):
-            inode=doc.createElement('OMEGA.{0}'.format(iomega+1))
+            inode=doc.createElement('OMEGA.{{0}}'.format(iomega+1))
             inode.setAttribute('type','real')
             inode.setAttribute('size','2')
             inode.setAttribute('columns','2')
