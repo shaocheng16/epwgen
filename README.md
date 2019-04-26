@@ -20,10 +20,10 @@ Check the submission scripts for further options/instructions.
 Any calculation parameters that are missing or have been "hardcoded" should be easy enough to introduce/change in the input lists called *_in. Everything should still work if you wish to do so.
 
 Requirements:
-  -Cluster with IBM LSF workload scheduler. Positions of LSF relevant lines that need to be changed for a different scheduler     (e.g. SLURM) are denoted by an "LSF" comment.
-  -Quantum Espresso
-  -python3
-  -environment modules
+- Cluster with IBM LSF workload scheduler. Positions of LSF relevant lines that need to be changed for a different scheduler     (e.g. SLURM) are denoted by an "LSF" comment.
+- Quantum Espresso
+- python3
+- environment modules
 
 Solving the Eliashberg equations and spin-orbit coupling does not work at the moment.
 
