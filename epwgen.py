@@ -1766,7 +1766,7 @@ else:
 ''']
 
 #postprocessing of the phonon calculations for EPW calculations. Taken from the EPW repository on github
-#(https://github.com/QEF/q-e/tree/master/EPW/bin)
+#(https://github.com/QEF/q-e/tree/master/EPW/bin) and slightly changed
 pp_py = ['''    
 #!/usr/bin/python
 #
@@ -1784,12 +1784,12 @@ from xml.dom import minidom
 def dyn2xml(prefix):
     ndyn=int(os.popen('head -2 {{0}}.dyn0|tail -1'.format(prefix)).read())
     for idyn in range(1,ndyn+1):
-        print '{{0}}.dyn{{1}} to {{0}}.dyn_q{{1}}.xml'.format(prefix,idyn)
+        print('{0}.dyn{1} to {0}.dyn_q{1}.xml'.format(prefix,idyn)')
         dynmat=dyn(prefix,idyn)
         dynmat._write_xml()
 def get_geom_info():
     if os.path.isfile('ph.out')==False:
-       print 'cannot extract geometry info from ph.out'
+       print('cannot extract geometry info from ph.out')
        return 1
     else:
        volm=float(os.popen('grep -a volume ph.out 2>/dev/null|tail -1').readline().split()[-2])
@@ -1817,7 +1817,7 @@ class dyn(object):
         self._at=np.zeros((3,3),float)
         self._bg=np.zeros((3,3),float)
         try: self._volm,self._at,self._bg = get_geom_info()
-        except: print 'warning: lattice info not found'
+        except: print('warning: lattice info not found')
         self._species=[];
         self._mass=[]
         for i in range(self._ntype):
@@ -1907,7 +1907,7 @@ class dyn(object):
             geom_info.appendChild(na)
         for iat in range(self._natom):
             at=doc.createElement('ATOM.{{0}}'.format(iat+1))
-            at.setAttribute('SPECIES','{{0}}'.format(self._species[self._atom_type[iat]-1]))
+            at.setAttribute('SPECIES','{0}'.format(self._species[self._atom_type[iat]-1]))
             at.setAttribute('INDEX',str(iat+1))
             pos=' '.join(['{{0:16.10f}}'.format(item) for item in self._pos[iat]])
             at.setAttribute('TAU',pos)
@@ -1941,7 +1941,7 @@ class dyn(object):
             root.appendChild(dynmat)
         mode=doc.createElement('FREQUENCIES_THZ_CMM1')
         for iomega in range(self._natom*3):
-            inode=doc.createElement('OMEGA.{{0}}'.format(iomega+1))
+            inode=doc.createElement('OMEGA.{0}'.format(iomega+1))
             inode.setAttribute('type','real')
             inode.setAttribute('size','2')
             inode.setAttribute('columns','2')
@@ -1997,21 +1997,21 @@ def isSEQ(prefix):
   return lseq
     
 # Enter the number of irr. q-points
-prefix = '{pf}' #get the prefix directly from the input generation script (Noe Mascello)
+prefix = '{pf}' #get the prefix directly from this generation script
 
 # Test if SOC
 SOC = hasSOC(prefix)
 
 # If SOC detected, but dyn is not in XML and we want to convert it
 if SOC=='true':
-  user_input = raw_input('Calculation with SOC detected. Do you want to convert dyn in XML format [y/n]?\n')
+  user_input = input('Calculation with SOC detected. Do you want to convert dyn in XML format [y/n]?')
   if str(user_input) == 'y':
     dyn2xml(prefix)
     os.system('mv {{0}}.dyn*.xml save'.format(prefix))
 
 # If no SOC detected, do you want to convert into XML format 
 if SOC=='false':
-  user_input = raw_input('Calculation without SOC detected. Do you want to convert to xml anyway [y/n]?\n')
+  user_input = input('Calculation without SOC detected. Do you want to convert to xml anyway [y/n]?')
   if str(user_input) == 'y':
     SOC = 'true'
     dyn2xml(prefix)
@@ -2025,7 +2025,7 @@ if True: # this gets the nqpt from the outputfiles
 
 else:
   # Enter the number of irr. q-points
-  user_input = raw_input('Enter the number of irreducible q-points\n')
+  user_input = input('Enter the number of irreducible q-points')
   nqpt = user_input
   try:
     nqpt = int(user_input)
