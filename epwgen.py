@@ -41,7 +41,7 @@ bands_dir = ''
 #    -Quantum Espresso including EPW package
 #    -python
 #    -gnuplot (optional)
-modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
+modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
 #these include wannier, bands_ip, q2r, matdyn
@@ -1326,10 +1326,6 @@ calc_end=10
 #If you need a specific submission script (e.g. for wannierization) set calc_start = calc_end (e.g. = 3) and set no_sub
 #to true. You'll find the job script as job.sh in the corresponding directory.
 no_sub=false
-
-#necessary modules: Quantum Espresso (tested for version 6.2.1)
-#                   Python
-#                   Perl
 
 #load modules 
 {module_commands}
