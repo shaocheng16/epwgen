@@ -1785,14 +1785,15 @@ def dyn2xml(prefix):
         dynmat=dyn(prefix,idyn)
         dynmat._write_xml()
 def get_geom_info():
-    if os.path.isfile('ph.out')==False:
-       print('cannot extract geometry info from ph.out')
+    phfile = 'ph_end.out'
+    if os.path.isfile(phfile)==False:
+       print('cannot extract geometry info from ' + phfile)
        return 1
     else:
-       volm=float(os.popen('grep -a volume ph.out 2>/dev/null|tail -1').readline().split()[-2])
-       get_at=os.popen('grep -a -A 3 "crystal axes" ph.out 2>/dev/null|tail -3').readlines()
+       volm=float(os.popen('grep -a volume ' + phfile + ' 2>/dev/null|tail -1').readline().split()[-2])
+       get_at=os.popen('grep -a -A 3 "crystal axes" ' + phfile + ' 2>/dev/null|tail -3').readlines()
        at=np.array([[float(item) for item in line.split()[3:6]] for line in get_at])
-       get_bg=os.popen('grep -a -A 3 "reciprocal axes" ph.out 2>/dev/null|tail -3').readlines()
+       get_bg=os.popen('grep -a -A 3 "reciprocal axes" ' + phfile + ' 2>/dev/null|tail -3').readlines()
        bg=np.array([[float(item) for item in line.split()[3:6]] for line in get_bg])
        return volm,at,bg
 
