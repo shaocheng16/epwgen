@@ -1817,6 +1817,8 @@ class dyn(object):
         self._bg=np.zeros((3,3),float)
         try: self._volm,self._at,self._bg = get_geom_info()
         except: print('warning: lattice info not found')
+	for i in range(0,4):
+	    f.readline()
         self._species=[];
         self._mass=[]
         for i in range(self._ntype):
@@ -2001,37 +2003,19 @@ prefix = '{pf}' #get the prefix directly from this generation script
 # Test if SOC
 SOC = hasSOC(prefix)
 
-# If SOC detected, but dyn is not in XML and we want to convert it
-if SOC=='true':
-  user_input = input('Calculation with SOC detected. Do you want to convert dyn in XML format [y/n]?')
-  if str(user_input) == 'y':
+# If SOC detected, but dyn is not in XML always convert it 
+if SOC=='true' and not os.path.isfile('{pf}.dyn1'):
     dyn2xml(prefix)
-    os.system('mv {{0}}.dyn*.xml save'.format(prefix))
 
-# If no SOC detected, do you want to convert into XML format 
-if SOC=='false':
-  user_input = input('Calculation without SOC detected. Do you want to convert to xml anyway [y/n]?')
-  if str(user_input) == 'y':
-    SOC = 'true'
-    dyn2xml(prefix)
-    os.system('mv {{0}}.dyn*.xml save'.format(prefix))
+# If no SOC detected, do nothing 
 
 # Test if seq. or parallel run
 SEQ = isSEQ(prefix)
 
-if True: # this gets the nqpt from the outputfiles
-  nqpt =  get_nqpt(prefix)
+nqpt =  get_nqpt(prefix)
 
-else:
-  # Enter the number of irr. q-points
-  user_input = input('Enter the number of irreducible q-points')
-  nqpt = user_input
-  try:
-    nqpt = int(user_input)
-  except ValueError:
-    raise Exception('The value you enter is not an integer!')
-
-os.system('mkdir save 2>/dev/null')
+if not os.path.isdir('save'): 
+    os.system('mkdir save')
 
 for iqpt in np.arange(1,nqpt+1):
   label = str(iqpt)
@@ -2045,7 +2029,11 @@ for iqpt in np.arange(1,nqpt+1):
       if (iqpt == 1):
         os.system('cp _ph0/'+prefix+'.dvscf* save/'+prefix+'.dvscf_q'+label)
         os.system('cp -r _ph0/'+prefix+'.phsave save/')
-        os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
+        #if the q2r run was made with non xml files copy the non xml ifc file
+        if not os.path.isfile(prefix + '.fc.xml'):
+            os.system('cp '+prefix+'.fc save/ifc.q2r')
+        else:
+            os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
       else:
         os.system('cp _ph0/'+prefix+'.q_'+str(iqpt)+'/'+prefix+'.dvscf* save/'+prefix+'.dvscf_q'+label)
         os.system('rm _ph0/'+prefix+'.q_'+str(iqpt)+'/*wfc*' )
@@ -2068,7 +2056,11 @@ for iqpt in np.arange(1,nqpt+1):
       if (iqpt == 1):
         os.system('cp _ph0/'+prefix+'.dvscf1 save/'+prefix+'.dvscf_q'+label)
         os.system('cp -r _ph0/'+prefix+'.phsave save/')
-        os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
+        #if the q2r run was made with non xml files copy the non xml ifc file 
+        if not os.path.isfile(prefix + '.fc.xml'):
+            os.system('cp '+prefix+'.fc save/ifc.q2r')
+        else:
+            os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
       else:
         os.system('cp _ph0/'+prefix+'.q_'+str(iqpt)+'/'+prefix+'.dvscf1 save/'+prefix+'.dvscf_q'+label)
         os.system('rm _ph0/'+prefix+'.q_'+str(iqpt)+'/*wfc*' )
