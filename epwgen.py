@@ -1277,7 +1277,8 @@ epw_sh = ['''
 #Execute from the parent directory (containing ELB, PHB, EPM, ISO directories).
 
 #Specify the number of bands to be wannierized, the index of the highest non-wannierized band and the initial guess...
-#...for the wannier functions.
+#...for the wannier functions. If you change this to get the windows in #3 right, you have to run #1 (with no_sub = true) again ...
+#...in order to reset the corresponding wannierization windows again.
 num_of_wan={num_of_wan}
 wannier_init={projections_epw}
 
