@@ -1781,7 +1781,7 @@ from xml.dom import minidom
 def dyn2xml(prefix):
     ndyn=int(os.popen('head -2 {{0}}.dyn0|tail -1'.format(prefix)).read())
     for idyn in range(1,ndyn+1):
-        print('{{0}}.dyn{{1}} to {{0}}.dyn_q{{1}}.xml'.format(prefix,idyn)')
+        print('{{0}}.dyn{{1}} to {{0}}.dyn_q{{1}}.xml'.format(prefix,idyn))
         dynmat=dyn(prefix,idyn)
         dynmat._write_xml()
 def get_geom_info():
@@ -1954,7 +1954,7 @@ class dyn(object):
             mode.appendChild(idisp)
         root.appendChild(mode)
         fp = open('{{0}}.dyn_q{{1}}.xml'.format(self._prefix,self._idyn), 'w')
-        doc.writexml(fp, addindent='  ', newl='\n')
+        doc.writexml(fp, addindent='  ', newl='\\n')
 
 # Return the number of q-points in the IBZ
 def get_nqpt(prefix):
