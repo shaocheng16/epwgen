@@ -2103,63 +2103,58 @@ e_vec = []
 
 ifs = open(bands_file, "r")
 for e in ifs:
-	e_vec.append(float(e))
-	
-
+    e_vec.append(float(e))
+    
 #get the index (wan_min) of the first band that crosses the fermi energy (indices starting at 1)
 wan_min = 0
 for i in range(0, bands):
-	for j in range(0, points):
-		index = i*points + j
-		if e_vec[index] >= Ef:
-			wan_min = i
-			break
-	if not wan_min == 0:
-		break	
+    for j in range(0, points):
+        index = i*points + j
+            if e_vec[index] >= Ef:
+                wan_min = i
+                break
+        if not wan_min == 0:
+                break	
 if wan_min + num_of_wan > bands:
-	sys.exit("You chose too many bands to wannierize")
-
+    sys.exit("You chose too many bands to wannierize")
+    
 #get the outer window by finding the smallest and largest values of the specified bands
 smallest_outer = e_vec[wan_min*points]
 largest_outer = smallest_outer
 for i in range(wan_min*points, (wan_min+num_of_wan)*points):
-	if e_vec[i] < smallest_outer:
-		smallest_outer = e_vec[i]
-	elif e_vec[i] > largest_outer:
-		largest_outer = e_vec[i]
-		
-		
-		
+    if e_vec[i] < smallest_outer:
+        smallest_outer = e_vec[i]
+    elif e_vec[i] > largest_outer:
+        largest_outer = e_vec[i]
+            
 #find the "disturbing" bands that fall into the outer window and do not belong to the specified bands
 dist_bands = []  
 for i in range(0, bands):
-	if i+1 > wan_min and i+1 <= wan_min + num_of_wan:
-		continue
-	else:
-		for j in range(0, points):
-			index = i*points + j
-			if e_vec[index] > smallest_outer and e_vec[index] < largest_outer:
-				dist_bands.append(i)
-				break
-   
-  
+    if i+1 > wan_min and i+1 <= wan_min + num_of_wan:
+        continue
+    else:
+        for j in range(0, points):
+            index = i*points + j
+            if e_vec[index] > smallest_outer and e_vec[index] < largest_outer:
+                dist_bands.append(i)
+                break
+                
 #find the inner window using the disturbing bands
 smallest_inner = smallest_outer;
 largest_inner = largest_outer;
 for i in range(0, len(dist_bands)):
-	smallest_local = e_vec[i*points]
-	largest_local = smallest_local
-	for j in range(0, points):
-		index = (dist_bands[i] - 1)*points + j
-		#check if current point of the disturbing band lies in the inner window
-		if e_vec[index] <= largest_inner and e_vec[index] >= smallest_inner:
-			#if it does, check if it lies closer to the top or bottom of the window and ajdust the window accordingly
-			if e_vec[index] - smallest_inner <= largest_inner - e_vec[index]:
-				smallest_inner = e_vec[index]
-			else:
-				largest_inner = e_vec[index]
-			
-
+    smallest_local = e_vec[i*points]
+    largest_local = smallest_local
+    for j in range(0, points):
+        index = (dist_bands[i] - 1)*points + j
+        #check if current point of the disturbing band lies in the inner window
+        if e_vec[index] <= largest_inner and e_vec[index] >= smallest_inner:
+            #if it does, check if it lies closer to the top or bottom of the window and ajdust the window accordingly
+            if e_vec[index] - smallest_inner <= largest_inner - e_vec[index]:
+                smallest_inner = e_vec[index]
+            else:
+                largest_inner = e_vec[index]
+                
 print("%12.8f \t %12.8f \t %12.8f \t %12.8f \t %d" %(smallest_inner, largest_inner, smallest_outer, largest_outer, wan_min))
 ''']
 
