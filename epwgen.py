@@ -1748,20 +1748,20 @@ if n3 <= 0:
 totpts = n1 * n2 * n3
 
 if not weighted:
-	print("K_POINTS crystal")
-	print("%d" % (totpts))
-	for i in range(0, n1):
-		for j in range(0, n2):
-			for k in range(0, n3):
-				print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
-    
+    print("K_POINTS crystal")
+    print("%d" % (totpts))
+    for i in range(0, n1):
+        for j in range(0, n2):
+            for k in range(0, n3):
+            print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
+
 else:
-	print("K_POINTS crystal")
-	print("%d" % (totpts))
-	for i in range(0, n1):
-		for j in range(0, n2):
-			for k in range(0, n3):
-				print("%12.8f%12.8f%12.8f%14.6e" % (i/n1,j/n2,k/n3,1/totpts))
+    print("K_POINTS crystal")
+    print("%d" % (totpts))
+    for i in range(0, n1):
+        for j in range(0, n2):
+            for k in range(0, n3):
+                print("%12.8f%12.8f%12.8f%14.6e" % (i/n1,j/n2,k/n3,1/totpts))
 ''']
 
 #postprocessing of the phonon calculations for EPW calculations. Taken from the EPW repository on github
@@ -2114,7 +2114,7 @@ for i in range(0, bands):
                 wan_min = i
                 break
         if not wan_min == 0:
-                break	
+                break
 if wan_min + num_of_wan > bands:
     sys.exit("You chose too many bands to wannierize")
     
