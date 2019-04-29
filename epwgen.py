@@ -1753,7 +1753,7 @@ if not weighted:
     for i in range(0, n1):
         for j in range(0, n2):
             for k in range(0, n3):
-            print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
+                print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
 
 else:
     print("K_POINTS crystal")
@@ -2110,11 +2110,11 @@ wan_min = 0
 for i in range(0, bands):
     for j in range(0, points):
         index = i*points + j
-            if e_vec[index] >= Ef:
-                wan_min = i
-                break
+        if e_vec[index] >= Ef:
+            wan_min = i
+            break
         if not wan_min == 0:
-                break
+            break
 if wan_min + num_of_wan > bands:
     sys.exit("You chose too many bands to wannierize")
     
