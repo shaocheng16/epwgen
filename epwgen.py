@@ -1958,7 +1958,7 @@ class dyn(object):
             mode.appendChild(inode)
             mode.appendChild(idisp)
         root.appendChild(mode)
-        fp = open('{{0}}.dyn_q{{1}}.xml'.format(self._prefix,self._idyn), 'w')
+        fp = open('{{0}}.dyn{{1}}.xml'.format(self._prefix,self._idyn), 'w')
         doc.writexml(fp, addindent='  ', newl='\\n')
 
 # Return the number of q-points in the IBZ
@@ -2005,7 +2005,7 @@ prefix = '{pf}' #get the prefix directly from this generation script
 SOC = hasSOC(prefix)
 
 # If SOC detected, but dyn is not in XML always convert it 
-if SOC=='true' and not os.path.isfile('{pf}.dyn1'):
+if SOC=='true' and not os.path.isfile('{pf}.dyn1.xml'):
     dyn2xml(prefix)
 
 # If no SOC detected, do nothing 
