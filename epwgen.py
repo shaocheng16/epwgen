@@ -1,6 +1,6 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'KTO_SOC'  
+pf = 'pb'  
 #name of the parent directory created by this script
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
@@ -41,7 +41,7 @@ bands_dir = ''
 #    -Quantum Espresso including EPW package
 #    -python
 #    -gnuplot (optional)
-modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
+modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
 #these include wannier, bands_ip, q2r, matdyn
@@ -58,15 +58,15 @@ modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
 #'''
 lattice = '''
 CELL_PARAMETERS angstrom
-        4.0000000000      0.0000000000         0.0000000000
-        0.0000000000      4.0000000000         0.0000000000
-        0.0000000000      0.0000000000         4.0000000000
+        4.8803680730      0.0000000000         0.0000000000
+        0.0000000000      4.8803680730         0.0000000000
+        0.0000000000      0.0000000000         4.8803680730
 '''
 #number of atoms in the unit cell
-num_of_atoms = 5
+num_of_atoms = 4
 
 #number of distinct atom types in unit cell
-num_of_atom_types = 3                 
+num_of_atom_types = 1                 
 
 #atom type specification as required in pw.x input file
 #Syntax:
@@ -78,9 +78,7 @@ num_of_atom_types = 3
 #'''
 atoms = '''                            
 ATOMIC_SPECIES
-K 39.0983 K_ONCV_PBE_FR_4.0.upf
-Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
-O 15.9994 O_ONCV_PBE_FR_4.0.upf
+Pb 207.2 pb_s.UPF
 '''
 
 #Atomic positions in relative positions to the lattice vectors
@@ -95,32 +93,32 @@ O 15.9994 O_ONCV_PBE_FR_4.0.upf
 
 atom_positions = '''
 ATOMIC_POSITIONS crystal
-  K  0.5000000000000000  0.5000000000000000  0.5000000000000000
-  Ta 0.0000000000000000  0.0000000000000000  0.0000000000000000
-  O  0.5000000000000000  0.0000000000000000  0.0000000000000000
-  O  0.0000000000000000  0.5000000000000000  0.0000000000000000
-  O  0.0000000000000000  0.0000000000000000  0.5000000000000000
+Pb     0.000000000         0.000000000         0.000000000
+Pb     0.000000000         0.500000000         0.500000000
+Pb     0.500000000         0.000000000         0.500000000
+Pb     0.500000000         0.500000000         0.000000000
 '''
 
 #____________________CALCULATION_PARAMETERS____________________#
 #plane wave cut-off energy in Ry
-e_cut = 60  
+e_cut = 30  
 #coarse k-grid size
 k_x = 6
 k_y = 6
 k_z = 6
 #coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other
-q_x = 2
-q_y = 2
-q_z = 2
+q_x = 3
+q_y = 3
+q_z = 3
 #fine grid sizes
-kf_x = 0
-kf_y = 0
-kf_z = 0
-qf_x = 0
-qf_y = 0
-qf_z = 0
-#for random fine grids, set random_sampling to True and specify the number of respective random points.
+kf_x = 12
+kf_y = 12
+kf_z = 12
+qf_x = 12
+qf_y = 12
+qf_z = 12
+#for random fine grids, set random_sampling to True and specify the number of respective random points. Note that for
+#the Eliashberg functions no random fine grids can be used which is why you still need to specify fine grids above in that case
 random_sampling = True
 random_nkf = 1000
 random_nqf = 500
@@ -137,12 +135,11 @@ delta_scf = '1.0d-8'
 #phonon convergence threshold in Ry^2
 delta_ph = '1.0d-14'
 
-#scf diagonalization algorithm ('cg' or 'david'). You might run into problems for EPW calculations if you use cg
+#scf diagonalization algorithm ('cg' or 'david'). 
 diag_algo = 'david'
 
 #spin-orbit coupling
 soc = True
-
                     
 
 #____________________HIGH_SYMMETRY_LINES_______________________#
@@ -167,11 +164,11 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized. 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 6
+num_of_wan = 8
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['random']
+wannier_init = ['Pb:sp3']
 
 #automatic wannierization window determination
 auto_window = True
@@ -179,7 +176,7 @@ auto_window = True
 #manual wannierization window specification. You only need to specify these parameters
 #if auto_window = False or if the automatic determination doesn't work.
 #highest band that does not get wannierized,i.e. the $num_of_wan bands after band $wan_min get wannierized
-wan_min = 16
+wan_min = 5
 #inner wannierization window (in eV)
 inner_bottom = 0.0
 inner_top = 0.0
@@ -369,8 +366,8 @@ else:
 noncolin_enable = '.false.'
 lspinorb_enable = '.false.'
 if soc == True:
-	noncolin_enable = '.true.'
-	lspinorb_enable = '.true.'
+    noncolin_enable = '.true.'
+    lspinorb_enable = '.true.'
    
         
 #_______________________________________INPUT_LISTS_______________________________________#
@@ -405,7 +402,7 @@ K_POINTS automatic
 {k_x} {k_y} {k_z} 0 0 0
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
-	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, delta_scf = delta_scf,
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, delta_scf = delta_scf,
            diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions, k_x = k_x, k_y = k_y, k_z = k_z)]
 
 bands_in = ['''
@@ -440,8 +437,8 @@ K_POINTS crystal_b
 {kpoints}
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
-	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, num_of_bands = num_of_bands,
-	   delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions,
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, num_of_bands = num_of_bands, 
+           delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions, 
            num_of_hsp = num_of_hsp, kpoints = kpoints)]
 
 bands_ip_in = ['''
@@ -468,7 +465,7 @@ ph_in = ['''
     tr2_ph   = {delta_ph}
     recover = .true.
 '''.format(pf = pf, q_x = q_x, q_y = q_y, q_z = q_z, asr_enable = asr_enable, delta_ph = delta_ph)]
-	
+
 q2r_in = ['''
 &INPUT
    fildyn='{pf}.dyn'
@@ -512,14 +509,14 @@ nscf_in = ['''
 /
 &ELECTRONS
     conv_thr    = {delta_scf}               
-    diagonalization = {diag_algo}
+    diagonalization = '{diag_algo}'
 /
 {lattice}
 {atoms}
 {atom_positions}
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
-	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, 
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, 
            num_of_bands = num_of_bands, delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions)]
 
 wannier_in = ['''
@@ -529,13 +526,13 @@ wannier_in = ['''
     dvscf_dir   = '{dvscf_dir}'
     
     elph        = .false.
-    epbwrite    = .false.         
+    epbwrite    = .true.         
     epwwrite    = .true.         
     
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
     nbndskip    =  {wan_min}            
-    num_iter    = 1000           
+    num_iter    = 10000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -567,14 +564,14 @@ wannier_epm_in = ['''
     outdir      = './'
     dvscf_dir   = '{dvscf_dir}'
     
-    elph        = .true.
-    epbwrite    = .false.         
-    epwwrite    = .true.         
+    elph        = .true.   
+    epbwrite    = .true.
+    epwwrite    = .true.
     
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
     nbndskip    =  {wan_min}            
-    num_iter    = 1000           
+    num_iter    = 10000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -686,12 +683,26 @@ eliashberg_iso = ['''
     elph        = .true.          
     eliashberg  = .true.          
 
-    epbwrite    = .false.        
-    epwwrite    = .false.         
+    epbwrite    = .true.        
+    epwwrite    = .true.         
     ephwrite    = .true.          
-    epbread     = .true.
-    epwread     = .true.
-    kmaps       = .true.
+    epbread     = .false.
+    epwread     = .false.
+    kmaps       = .false.
+    
+    wannierize  = .true.         
+    nbndsub     =  {num_of_wan}             
+    nbndskip    =  {wan_min}            
+    num_iter    = 10000           
+    dis_win_min = 0.0            
+    dis_win_max = 0.0
+    dis_froz_min = 0.0            
+    dis_froz_max = 0.0
+    
+    {projections}      
+    wdata(1) = 'bands_plot = .true.'
+    wdata(2) = 'begin kpoint_path'
+    {kpoints_wannier}
 
     laniso      = .false.         
     liso        = .true.          
@@ -702,18 +713,14 @@ eliashberg_iso = ['''
     nsiter      = 500             
     conv_thr_iaxis = 1.0d-3       
     conv_thr_racon = 1.0d-3
-    wscut = 0.1 ! eV              
+            
     tempsmin = {T_min}            
     tempsmax = {T_max}
     nstemp = {num_of_T}
 
     muc     = 0.09                 
 
-    mp_mesh_k = .true.             
-
-    !fsthick     = 10               
-    !eptemp      = 0.075        
-    !degaussw    = 0.1          
+    mp_mesh_k = .true.                
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -728,9 +735,10 @@ eliashberg_iso = ['''
 
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections, 
+           kpoints_wannier = kpoints_wannier, T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
            qf_x = qf_x, qf_y = qf_y, qf_z = qf_z, k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
-           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
+           fine_grids = generate_fine_grids(False,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
 
 #_________________________________________________________________________________________#
 #_________________________________________________________________________________________#
@@ -1203,6 +1211,12 @@ then
 
 cat > job.sh << EOF
 {q2r_sub}
+if [ -f {pf}.dyn1.xml ]
+then
+    cp {pf}.dyn0 {pf}.dyn0.xml
+    sed -i "s/{pf}\.dyn/{pf}\.dyn\.xml/g" q2r.in
+fi
+mpirun q2r.x -npool 1 -in q2r.in > q2r.out
 EOF
 
 {q2r_cond_sub}
@@ -1214,7 +1228,13 @@ then
 
 cat > job.sh << EOF
 {matdyn_sub}
+if [ -f {pf}.dyn1.xml ]
+then
+    sed -i "s/{pf}\.fc/{pf}\.fc\.xml/g" matdyn.in
+fi
+mpirun matdyn.x -npool 1 -in matdyn.in > matdyn.out
 EOF
+
 {matdyn_cond_sub}
 fi
 
@@ -1265,9 +1285,9 @@ fi
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
-           q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'q2r.in','q2r.out','q2r.x',jobname + '_ph_collect'),
+           q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'','','',jobname + '_ph_collect'),
            q2r_cond_sub = check_cond_sub(8),
-           matdyn_sub = make_job_sub(jobname + '_matdyn',1,ram,4,'matdyn.in','matdyn.out','matdyn.x',jobname + '_q2r'),
+           matdyn_sub = make_job_sub(jobname + '_matdyn',1,ram,4,'','','',jobname + '_q2r'),
            matdyn_cond_sub = check_cond_sub(9),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
@@ -1386,7 +1406,7 @@ line=$(grep -n fermi_energy $base_dir/EPM/ph_lw.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/EPM/ph_lw.in
 line=$(grep -n fermi_energy $base_dir/EPM/a2F.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/EPM/a2F.in
-line=$(grep -n fermi_energy $base_dir/EPM/a2F.in | cut -d : -f 1)
+line=$(grep -n fermi_energy $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/ISO/eliashberg_iso.in
 
 
