@@ -2113,8 +2113,8 @@ for i in range(0, bands):
         if e_vec[index] >= Ef:
             wan_min = i
             break
-        if not wan_min == 0:
-            break
+    if not wan_min == 0:
+        break
 if wan_min + num_of_wan > bands:
     sys.exit("You chose too many bands to wannierize")
     
