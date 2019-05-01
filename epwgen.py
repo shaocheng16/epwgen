@@ -1476,8 +1476,14 @@ sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_bottom/3" $base_dir/EPM/wannier_epm.in
 line=$(grep -n dis_froz_max $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_top/3" $base_dir/EPM/wannier_epm.in
 
-#copy the updated and necessary input files to the ISO directory
-cp $base_dir/EPM/wannier_epm.in $base_dir/ISO
+line=$(grep -n dis_win_min $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_bottom/3" $base_dir/ISO/eliashberg_iso.in
+line=$(grep -n dis_win_max $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_top/3" $base_dir/ISO/eliashberg_iso.in
+line=$(grep -n dis_froz_min $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_bottom/3" $base_dir/ISO/eliashberg_iso.in
+line=$(grep -n dis_froz_max $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_top/3" $base_dir/ISO/eliashberg_iso.in
 
 fi
 #ENDIF CALC_START
@@ -1647,19 +1653,8 @@ EOF
 {iso_nscf_cond_sub}
 fi
 
-#wannierization and epm calculation
-if (($calc_start <= 9)) && (($calc_end >= 9))
-then
-
-cat > job.sh << EOF
-{iso_epm_sub}
-EOF
-
-{iso_epm_cond_sub}
-fi
-
 #isotropic eliashberg
-if (($calc_start <= 10)) && (($calc_end >= 10))
+if (($calc_start <= 9)) && (($calc_end >= 9))
 then
 
 cat > job.sh << EOF
@@ -1707,10 +1702,8 @@ fi
            iso_scf_cond_sub = check_cond_sub(7, True),
            iso_nscf_sub = make_job_sub(jobname + '_iso_nscf',num_of_cpu_scf,ram,scf_t,'nscf.in','nscf.out','pw.x',jobname + '_iso_scf'),
            iso_nscf_cond_sub = check_cond_sub(8),
-           iso_epm_sub = make_job_sub(jobname + '_iso_epm',num_of_cpu_epw,ram,epw_t,'wannier_epm.in','wannier_epm.out','epw.x',jobname + '_iso_scf'),
-           iso_epm_cond_sub = check_cond_sub(9),
-           iso_sub = make_job_sub(jobname + '_iso',num_of_cpu_epw,ram,epw_t,'eliashberg_iso.in','eliashberg_iso.out','epw.x',jobname + '_iso_epm'),
-           iso_cond_sub = check_cond_sub(10),
+           iso_sub = make_job_sub(jobname + '_iso',num_of_cpu_epw,ram,epw_t,'eliashberg_iso.in','eliashberg_iso.out','epw.x',jobname + '_iso_nscf'),
+           iso_cond_sub = check_cond_sub(9),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
            num_of_wan = num_of_wan, wan_min = wan_min, projections_epw = projections_epw, auto_window = auto_window,
