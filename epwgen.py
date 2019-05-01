@@ -180,7 +180,7 @@ auto_window = True
 #manual wannierization window specification. You only need to specify these parameters
 #if auto_window = False or if the automatic determination doesn't work.
 #highest band that does not get wannierized,i.e. the $num_of_wan bands after band $wan_min get wannierized
-wan_min = 16
+wan_min = 34
 #inner wannierization window (in eV)
 inner_bottom = 0.0
 inner_top = 0.0
