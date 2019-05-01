@@ -1705,7 +1705,7 @@ fi
            a2F_cond_sub = check_cond_sub(6),
            iso_scf_sub = make_job_sub(jobname + '_iso_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            iso_scf_cond_sub = check_cond_sub(7, True),
-           iso_nscf_sub = make_job_sub(jobname + '_iso_nscf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',jobname + '_iso_scf'),
+           iso_nscf_sub = make_job_sub(jobname + '_iso_nscf',num_of_cpu_scf,ram,scf_t,'nscf.in','nscf.out','pw.x',jobname + '_iso_scf'),
            iso_nscf_cond_sub = check_cond_sub(8),
            iso_epm_sub = make_job_sub(jobname + '_iso_epm',num_of_cpu_epw,ram,epw_t,'wannier_epm.in','wannier_epm.out','epw.x',jobname + '_iso_scf'),
            iso_epm_cond_sub = check_cond_sub(9),
