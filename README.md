@@ -25,6 +25,6 @@ Requirements:
 - python3
 - environment modules
 
-Solving the Eliashberg equations and spin-orbit coupling does not work at the moment.
+Solving the Eliashberg equations does not work at the moment.
 
-The script contains a crude but quick and working non-SOC example without solution of the isotropic Eliashberg functions. You only need to specify the absolute path to the pseudopotentials on your cluster and the module names.
+The script contains a crude but quick and working example (including SOC) without solution of the isotropic Eliashberg functions. You only need to specify the absolute path to the pseudopotentials on your cluster and the module names.
