@@ -1,6 +1,6 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'pb'  
+pf = 'Pb'  
 #name of the parent directory created by this script
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
@@ -126,7 +126,7 @@ random_nqf = 500
 #number of bands calculated. Set to 0 if this should be determined automatically.
 num_of_bands = 0    
 #amount of additional charge per unit cell (electrons negative, holes positive).
-nelect = -0.1
+nelect = 0.0
 #accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable)
 asr_type = 'simple'
 
@@ -168,7 +168,7 @@ num_of_wan = 8
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['Pb:sp3']
+wannier_init = ['random']
 
 #automatic wannierization window determination
 auto_window = True
@@ -176,7 +176,7 @@ auto_window = True
 #manual wannierization window specification. You only need to specify these parameters
 #if auto_window = False or if the automatic determination doesn't work.
 #highest band that does not get wannierized,i.e. the $num_of_wan bands after band $wan_min get wannierized
-wan_min = 5
+wan_min = 0
 #inner wannierization window (in eV)
 inner_bottom = 0.0
 inner_top = 0.0
