@@ -529,7 +529,7 @@ wannier_in = ['''
     dvscf_dir   = '{dvscf_dir}'
     
     elph        = .false.
-    epbwrite    = .false.         
+    epbwrite    = .true.         
     epwwrite    = .true.         
     
     wannierize  = .true.         
@@ -567,9 +567,9 @@ wannier_epm_in = ['''
     outdir      = './'
     dvscf_dir   = '{dvscf_dir}'
     
-    elph        = .true.
-    epbwrite    = .false.         
-    epwwrite    = .true.         
+    elph        = .true.   
+    epbwrite    = .true.
+    epwwrite    = .true.
     
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
@@ -1386,7 +1386,7 @@ line=$(grep -n fermi_energy $base_dir/EPM/ph_lw.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/EPM/ph_lw.in
 line=$(grep -n fermi_energy $base_dir/EPM/a2F.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/EPM/a2F.in
-line=$(grep -n fermi_energy $base_dir/EPM/a2F.in | cut -d : -f 1)
+line=$(grep -n fermi_energy $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/ISO/eliashberg_iso.in
 
 
