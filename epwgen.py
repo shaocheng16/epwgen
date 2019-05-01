@@ -512,7 +512,7 @@ nscf_in = ['''
 /
 &ELECTRONS
     conv_thr    = {delta_scf}               
-    diagonalization = {diag_algo}
+    diagonalization = '{diag_algo}'
 /
 {lattice}
 {atoms}
