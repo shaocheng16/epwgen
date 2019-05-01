@@ -114,13 +114,14 @@ q_x = 2
 q_y = 2
 q_z = 2
 #fine grid sizes
-kf_x = 0
-kf_y = 0
-kf_z = 0
-qf_x = 0
-qf_y = 0
-qf_z = 0
-#for random fine grids, set random_sampling to True and specify the number of respective random points.
+kf_x = 12
+kf_y = 12
+kf_z = 12
+qf_x = 12
+qf_y = 12
+qf_z = 12
+#for random fine grids, set random_sampling to True and specify the number of respective random points. Note that for
+#the Eliashberg functions no random fine grids can be used which is why you still need to specify fine grids above in that case
 random_sampling = True
 random_nkf = 1000
 random_nqf = 500
@@ -137,7 +138,7 @@ delta_scf = '1.0d-8'
 #phonon convergence threshold in Ry^2
 delta_ph = '1.0d-14'
 
-#scf diagonalization algorithm ('cg' or 'david'). You might run into problems for EPW calculations if you use cg
+#scf diagonalization algorithm ('cg' or 'david'). 
 diag_algo = 'david'
 
 #spin-orbit coupling
@@ -171,7 +172,7 @@ num_of_wan = 6
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['random']
+wannier_init = ['Ta:l=2,mr=2,3,5']
 
 #automatic wannierization window determination
 auto_window = True
@@ -535,7 +536,7 @@ wannier_in = ['''
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
     nbndskip    =  {wan_min}            
-    num_iter    = 1000           
+    num_iter    = 10000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -574,7 +575,7 @@ wannier_epm_in = ['''
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
     nbndskip    =  {wan_min}            
-    num_iter    = 1000           
+    num_iter    = 10000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -686,12 +687,26 @@ eliashberg_iso = ['''
     elph        = .true.          
     eliashberg  = .true.          
 
-    epbwrite    = .false.        
-    epwwrite    = .false.         
+    epbwrite    = .true.        
+    epwwrite    = .true.         
     ephwrite    = .true.          
-    epbread     = .true.
-    epwread     = .true.
-    kmaps       = .true.
+    epbread     = .false.
+    epwread     = .false.
+    kmaps       = .false.
+    
+    wannierize  = .true.         
+    nbndsub     =  {num_of_wan}             
+    nbndskip    =  {wan_min}            
+    num_iter    = 10000           
+    dis_win_min = 0.0            
+    dis_win_max = 0.0
+    dis_froz_min = 0.0            
+    dis_froz_max = 0.0
+    
+    {projections}      
+    wdata(1) = 'bands_plot = .true.'
+    wdata(2) = 'begin kpoint_path'
+    {kpoints_wannier}
 
     laniso      = .false.         
     liso        = .true.          
@@ -702,18 +717,14 @@ eliashberg_iso = ['''
     nsiter      = 500             
     conv_thr_iaxis = 1.0d-3       
     conv_thr_racon = 1.0d-3
-    wscut = 0.1 ! eV              
+            
     tempsmin = {T_min}            
     tempsmax = {T_max}
     nstemp = {num_of_T}
 
     muc     = 0.09                 
 
-    mp_mesh_k = .true.             
-
-    !fsthick     = 10               
-    !eptemp      = 0.075        
-    !degaussw    = 0.1          
+    mp_mesh_k = .true.                
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -728,9 +739,10 @@ eliashberg_iso = ['''
 
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections,
+	   kpoints_wannier = kpoints_wannier, T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
            qf_x = qf_x, qf_y = qf_y, qf_z = qf_z, k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
-           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
+           fine_grids = generate_fine_grids(False,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
 
 #_________________________________________________________________________________________#
 #_________________________________________________________________________________________#
