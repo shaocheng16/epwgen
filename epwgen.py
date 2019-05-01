@@ -1709,7 +1709,7 @@ fi
            iso_nscf_cond_sub = check_cond_sub(8),
            iso_epm_sub = make_job_sub(jobname + '_iso_epm',num_of_cpu_epw,ram,epw_t,'wannier_epm.in','wannier_epm.out','epw.x',jobname + '_iso_scf'),
            iso_epm_cond_sub = check_cond_sub(9),
-           iso_sub = make_job_sub(jobname + '_iso',num_of_cpu_epw,ram,epw_t,'eliashberg.in','eliashberg.out','epw.x',jobname + '_iso_epm'),
+           iso_sub = make_job_sub(jobname + '_iso',num_of_cpu_epw,ram,epw_t,'eliashberg_iso.in','eliashberg_iso.out','epw.x',jobname + '_iso_epm'),
            iso_cond_sub = check_cond_sub(10),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
