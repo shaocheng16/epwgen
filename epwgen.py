@@ -1,6 +1,6 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'WO3'  
+pf = 'KTO_SOC'  
 #name of the parent directory created by this script
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
@@ -58,15 +58,15 @@ modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
 #'''
 lattice = '''
 CELL_PARAMETERS angstrom
-        3.7959315000      0.0000000000         0.0000000000
-        0.0000000000      3.7959315000         0.0000000000
-        0.0000000000      0.0000000000         3.7959315000
+        4.0000000000      0.0000000000         0.0000000000
+        0.0000000000      4.0000000000         0.0000000000
+        0.0000000000      0.0000000000         4.0000000000
 '''
 #number of atoms in the unit cell
-num_of_atoms = 4
+num_of_atoms = 5
 
 #number of distinct atom types in unit cell
-num_of_atom_types = 2                 
+num_of_atom_types = 3                 
 
 #atom type specification as required in pw.x input file
 #Syntax:
@@ -78,8 +78,9 @@ num_of_atom_types = 2
 #'''
 atoms = '''                            
 ATOMIC_SPECIES
-W 183.84 W_ONCV_LDA-4.0.upf
-O 15.9994 O_ONCV_LDA-3.0.upf
+K 39.0983 K_ONCV_PBE_FR_4.0.upf
+Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
+O 15.9994 O_ONCV_PBE_FR_4.0.upf
 '''
 
 #Atomic positions in relative positions to the lattice vectors
@@ -140,7 +141,7 @@ delta_ph = '1.0d-14'
 diag_algo = 'david'
 
 #spin-orbit coupling
-soc = False
+soc = True
 
                     
 
@@ -166,11 +167,11 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized. 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 3
+num_of_wan = 6
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['W:l=2,mr=2,3,5']
+wannier_init = ['random']
 
 #automatic wannierization window determination
 auto_window = True
@@ -1747,20 +1748,20 @@ if n3 <= 0:
 totpts = n1 * n2 * n3
 
 if not weighted:
-	print("K_POINTS crystal")
-	print("%d" % (totpts))
-	for i in range(0, n1):
-		for j in range(0, n2):
-			for k in range(0, n3):
-				print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
-    
+    print("K_POINTS crystal")
+    print("%d" % (totpts))
+    for i in range(0, n1):
+        for j in range(0, n2):
+            for k in range(0, n3):
+                print("%12.8f%12.8f%12.8f" % (i/n1,j/n2,k/n3))
+
 else:
-	print("K_POINTS crystal")
-	print("%d" % (totpts))
-	for i in range(0, n1):
-		for j in range(0, n2):
-			for k in range(0, n3):
-				print("%12.8f%12.8f%12.8f%14.6e" % (i/n1,j/n2,k/n3,1/totpts))
+    print("K_POINTS crystal")
+    print("%d" % (totpts))
+    for i in range(0, n1):
+        for j in range(0, n2):
+            for k in range(0, n3):
+                print("%12.8f%12.8f%12.8f%14.6e" % (i/n1,j/n2,k/n3,1/totpts))
 ''']
 
 #postprocessing of the phonon calculations for EPW calculations. Taken from the EPW repository on github
@@ -1817,6 +1818,8 @@ class dyn(object):
         self._bg=np.zeros((3,3),float)
         try: self._volm,self._at,self._bg = get_geom_info()
         except: print('warning: lattice info not found')
+        for i in range(0,4):
+            f.readline()
         self._species=[];
         self._mass=[]
         for i in range(self._ntype):
@@ -1955,7 +1958,7 @@ class dyn(object):
             mode.appendChild(inode)
             mode.appendChild(idisp)
         root.appendChild(mode)
-        fp = open('{{0}}.dyn_q{{1}}.xml'.format(self._prefix,self._idyn), 'w')
+        fp = open('{{0}}.dyn{{1}}.xml'.format(self._prefix,self._idyn), 'w')
         doc.writexml(fp, addindent='  ', newl='\\n')
 
 # Return the number of q-points in the IBZ
@@ -2001,37 +2004,19 @@ prefix = '{pf}' #get the prefix directly from this generation script
 # Test if SOC
 SOC = hasSOC(prefix)
 
-# If SOC detected, but dyn is not in XML and we want to convert it
-if SOC=='true':
-  user_input = input('Calculation with SOC detected. Do you want to convert dyn in XML format [y/n]?')
-  if str(user_input) == 'y':
+# If SOC detected, but dyn is not in XML always convert it 
+if SOC=='true' and not os.path.isfile('{pf}.dyn1.xml'):
     dyn2xml(prefix)
-    os.system('mv {{0}}.dyn*.xml save'.format(prefix))
 
-# If no SOC detected, do you want to convert into XML format 
-if SOC=='false':
-  user_input = input('Calculation without SOC detected. Do you want to convert to xml anyway [y/n]?')
-  if str(user_input) == 'y':
-    SOC = 'true'
-    dyn2xml(prefix)
-    os.system('mv {{0}}.dyn*.xml save'.format(prefix))
+# If no SOC detected, do nothing 
 
 # Test if seq. or parallel run
 SEQ = isSEQ(prefix)
 
-if True: # this gets the nqpt from the outputfiles
-  nqpt =  get_nqpt(prefix)
+nqpt =  get_nqpt(prefix)
 
-else:
-  # Enter the number of irr. q-points
-  user_input = input('Enter the number of irreducible q-points')
-  nqpt = user_input
-  try:
-    nqpt = int(user_input)
-  except ValueError:
-    raise Exception('The value you enter is not an integer!')
-
-os.system('mkdir save 2>/dev/null')
+if not os.path.isdir('save'): 
+    os.system('mkdir save')
 
 for iqpt in np.arange(1,nqpt+1):
   label = str(iqpt)
@@ -2045,7 +2030,11 @@ for iqpt in np.arange(1,nqpt+1):
       if (iqpt == 1):
         os.system('cp _ph0/'+prefix+'.dvscf* save/'+prefix+'.dvscf_q'+label)
         os.system('cp -r _ph0/'+prefix+'.phsave save/')
-        os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
+        #if the q2r run was made with non xml files copy the non xml ifc file
+        if not os.path.isfile(prefix + '.fc.xml'):
+            os.system('cp '+prefix+'.fc save/ifc.q2r')
+        else:
+            os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
       else:
         os.system('cp _ph0/'+prefix+'.q_'+str(iqpt)+'/'+prefix+'.dvscf* save/'+prefix+'.dvscf_q'+label)
         os.system('rm _ph0/'+prefix+'.q_'+str(iqpt)+'/*wfc*' )
@@ -2068,7 +2057,11 @@ for iqpt in np.arange(1,nqpt+1):
       if (iqpt == 1):
         os.system('cp _ph0/'+prefix+'.dvscf1 save/'+prefix+'.dvscf_q'+label)
         os.system('cp -r _ph0/'+prefix+'.phsave save/')
-        os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
+        #if the q2r run was made with non xml files copy the non xml ifc file 
+        if not os.path.isfile(prefix + '.fc.xml'):
+            os.system('cp '+prefix+'.fc save/ifc.q2r')
+        else:
+            os.system('cp '+prefix+'.fc.xml save/ifc.q2r.xml')
       else:
         os.system('cp _ph0/'+prefix+'.q_'+str(iqpt)+'/'+prefix+'.dvscf1 save/'+prefix+'.dvscf_q'+label)
         os.system('rm _ph0/'+prefix+'.q_'+str(iqpt)+'/*wfc*' )
@@ -2110,63 +2103,58 @@ e_vec = []
 
 ifs = open(bands_file, "r")
 for e in ifs:
-	e_vec.append(float(e))
-	
-
+    e_vec.append(float(e))
+    
 #get the index (wan_min) of the first band that crosses the fermi energy (indices starting at 1)
 wan_min = 0
 for i in range(0, bands):
-	for j in range(0, points):
-		index = i*points + j
-		if e_vec[index] >= Ef:
-			wan_min = i
-			break
-	if not wan_min == 0:
-		break	
+    for j in range(0, points):
+        index = i*points + j
+        if e_vec[index] >= Ef:
+            wan_min = i
+            break
+    if not wan_min == 0:
+        break
 if wan_min + num_of_wan > bands:
-	sys.exit("You chose too many bands to wannierize")
-
+    sys.exit("You chose too many bands to wannierize")
+    
 #get the outer window by finding the smallest and largest values of the specified bands
 smallest_outer = e_vec[wan_min*points]
 largest_outer = smallest_outer
 for i in range(wan_min*points, (wan_min+num_of_wan)*points):
-	if e_vec[i] < smallest_outer:
-		smallest_outer = e_vec[i]
-	elif e_vec[i] > largest_outer:
-		largest_outer = e_vec[i]
-		
-		
-		
+    if e_vec[i] < smallest_outer:
+        smallest_outer = e_vec[i]
+    elif e_vec[i] > largest_outer:
+        largest_outer = e_vec[i]
+            
 #find the "disturbing" bands that fall into the outer window and do not belong to the specified bands
 dist_bands = []  
 for i in range(0, bands):
-	if i+1 > wan_min and i+1 <= wan_min + num_of_wan:
-		continue
-	else:
-		for j in range(0, points):
-			index = i*points + j
-			if e_vec[index] > smallest_outer and e_vec[index] < largest_outer:
-				dist_bands.append(i)
-				break
-   
-  
+    if i+1 > wan_min and i+1 <= wan_min + num_of_wan:
+        continue
+    else:
+        for j in range(0, points):
+            index = i*points + j
+            if e_vec[index] > smallest_outer and e_vec[index] < largest_outer:
+                dist_bands.append(i)
+                break
+                
 #find the inner window using the disturbing bands
 smallest_inner = smallest_outer;
 largest_inner = largest_outer;
 for i in range(0, len(dist_bands)):
-	smallest_local = e_vec[i*points]
-	largest_local = smallest_local
-	for j in range(0, points):
-		index = (dist_bands[i] - 1)*points + j
-		#check if current point of the disturbing band lies in the inner window
-		if e_vec[index] <= largest_inner and e_vec[index] >= smallest_inner:
-			#if it does, check if it lies closer to the top or bottom of the window and ajdust the window accordingly
-			if e_vec[index] - smallest_inner <= largest_inner - e_vec[index]:
-				smallest_inner = e_vec[index]
-			else:
-				largest_inner = e_vec[index]
-			
-
+    smallest_local = e_vec[i*points]
+    largest_local = smallest_local
+    for j in range(0, points):
+        index = (dist_bands[i] - 1)*points + j
+        #check if current point of the disturbing band lies in the inner window
+        if e_vec[index] <= largest_inner and e_vec[index] >= smallest_inner:
+            #if it does, check if it lies closer to the top or bottom of the window and ajdust the window accordingly
+            if e_vec[index] - smallest_inner <= largest_inner - e_vec[index]:
+                smallest_inner = e_vec[index]
+            else:
+                largest_inner = e_vec[index]
+                
 print("%12.8f \t %12.8f \t %12.8f \t %12.8f \t %d" %(smallest_inner, largest_inner, smallest_outer, largest_outer, wan_min))
 ''']
 
