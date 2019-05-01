@@ -370,8 +370,8 @@ else:
 noncolin_enable = '.false.'
 lspinorb_enable = '.false.'
 if soc == True:
-	noncolin_enable = '.true.'
-	lspinorb_enable = '.true.'
+    noncolin_enable = '.true.'
+    lspinorb_enable = '.true.'
    
         
 #_______________________________________INPUT_LISTS_______________________________________#
@@ -406,7 +406,7 @@ K_POINTS automatic
 {k_x} {k_y} {k_z} 0 0 0
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
-	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, delta_scf = delta_scf,
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, delta_scf = delta_scf,
            diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions, k_x = k_x, k_y = k_y, k_z = k_z)]
 
 bands_in = ['''
@@ -441,8 +441,8 @@ K_POINTS crystal_b
 {kpoints}
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
-	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, num_of_bands = num_of_bands,
-	   delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions,
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, num_of_bands = num_of_bands, 
+           delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions, 
            num_of_hsp = num_of_hsp, kpoints = kpoints)]
 
 bands_ip_in = ['''
@@ -469,7 +469,7 @@ ph_in = ['''
     tr2_ph   = {delta_ph}
     recover = .true.
 '''.format(pf = pf, q_x = q_x, q_y = q_y, q_z = q_z, asr_enable = asr_enable, delta_ph = delta_ph)]
-	
+
 q2r_in = ['''
 &INPUT
    fildyn='{pf}.dyn'
@@ -520,7 +520,7 @@ nscf_in = ['''
 {atom_positions}
 '''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
            num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
-	   noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, 
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, 
            num_of_bands = num_of_bands, delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions)]
 
 wannier_in = ['''
@@ -739,8 +739,8 @@ eliashberg_iso = ['''
 
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections,
-	   kpoints_wannier = kpoints_wannier, T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections, 
+           kpoints_wannier = kpoints_wannier, T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
            qf_x = qf_x, qf_y = qf_y, qf_z = qf_z, k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
            fine_grids = generate_fine_grids(False,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
 
