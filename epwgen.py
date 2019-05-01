@@ -1,6 +1,6 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'KTO_SOC'  
+pf = 'pb'  
 #name of the parent directory created by this script
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
@@ -41,7 +41,7 @@ bands_dir = ''
 #    -Quantum Espresso including EPW package
 #    -python
 #    -gnuplot (optional)
-modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
+modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
 #these include wannier, bands_ip, q2r, matdyn
@@ -58,15 +58,15 @@ modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
 #'''
 lattice = '''
 CELL_PARAMETERS angstrom
-        4.0000000000      0.0000000000         0.0000000000
-        0.0000000000      4.0000000000         0.0000000000
-        0.0000000000      0.0000000000         4.0000000000
+        4.8803680730      0.0000000000         0.0000000000
+        0.0000000000      4.8803680730         0.0000000000
+        0.0000000000      0.0000000000         4.8803680730
 '''
 #number of atoms in the unit cell
-num_of_atoms = 5
+num_of_atoms = 4
 
 #number of distinct atom types in unit cell
-num_of_atom_types = 3                 
+num_of_atom_types = 1                 
 
 #atom type specification as required in pw.x input file
 #Syntax:
@@ -78,9 +78,7 @@ num_of_atom_types = 3
 #'''
 atoms = '''                            
 ATOMIC_SPECIES
-K 39.0983 K_ONCV_PBE_FR_4.0.upf
-Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
-O 15.9994 O_ONCV_PBE_FR_4.0.upf
+Pb 207.2 pb_s.UPF
 '''
 
 #Atomic positions in relative positions to the lattice vectors
@@ -95,24 +93,23 @@ O 15.9994 O_ONCV_PBE_FR_4.0.upf
 
 atom_positions = '''
 ATOMIC_POSITIONS crystal
-  K  0.5000000000000000  0.5000000000000000  0.5000000000000000
-  Ta 0.0000000000000000  0.0000000000000000  0.0000000000000000
-  O  0.5000000000000000  0.0000000000000000  0.0000000000000000
-  O  0.0000000000000000  0.5000000000000000  0.0000000000000000
-  O  0.0000000000000000  0.0000000000000000  0.5000000000000000
+Pb     0.000000000         0.000000000         0.000000000
+Pb     0.000000000         0.500000000         0.500000000
+Pb     0.500000000         0.000000000         0.500000000
+Pb     0.500000000         0.500000000         0.000000000
 '''
 
 #____________________CALCULATION_PARAMETERS____________________#
 #plane wave cut-off energy in Ry
-e_cut = 60  
+e_cut = 30  
 #coarse k-grid size
 k_x = 6
 k_y = 6
 k_z = 6
 #coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other
-q_x = 2
-q_y = 2
-q_z = 2
+q_x = 3
+q_y = 3
+q_z = 3
 #fine grid sizes
 kf_x = 12
 kf_y = 12
@@ -143,7 +140,6 @@ diag_algo = 'david'
 
 #spin-orbit coupling
 soc = True
-
                     
 
 #____________________HIGH_SYMMETRY_LINES_______________________#
@@ -168,11 +164,11 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized. 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 6
+num_of_wan = 8
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['Ta:l=2,mr=2,3,5']
+wannier_init = ['Pb:sp3']
 
 #automatic wannierization window determination
 auto_window = True
@@ -180,7 +176,7 @@ auto_window = True
 #manual wannierization window specification. You only need to specify these parameters
 #if auto_window = False or if the automatic determination doesn't work.
 #highest band that does not get wannierized,i.e. the $num_of_wan bands after band $wan_min get wannierized
-wan_min = 34
+wan_min = 5
 #inner wannierization window (in eV)
 inner_bottom = 0.0
 inner_top = 0.0
@@ -1215,6 +1211,12 @@ then
 
 cat > job.sh << EOF
 {q2r_sub}
+if [ -f {pf}.dyn1.xml ]
+then
+    cp {pf}.dyn0 {pf}.dyn0.xml
+    sed -i "s/{pf}\.dyn/{pf}\.dyn\.xml/g" q2r.in
+fi
+mpirun q2r.x -npool 1 -in q2r.in > q2r.out
 EOF
 
 {q2r_cond_sub}
@@ -1226,7 +1228,13 @@ then
 
 cat > job.sh << EOF
 {matdyn_sub}
+if [ -f {pf}.dyn1.xml ]
+then
+    sed -i "s/{pf}\.fc/{pf}\.fc\.xml/g" matdyn.in
+fi
+mpirun matdyn.x -npool 1 -in matdyn.in > matdyn.out
 EOF
+
 {matdyn_cond_sub}
 fi
 
@@ -1277,9 +1285,9 @@ fi
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
-           q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'q2r.in','q2r.out','q2r.x',jobname + '_ph_collect'),
+           q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'','','',jobname + '_ph_collect'),
            q2r_cond_sub = check_cond_sub(8),
-           matdyn_sub = make_job_sub(jobname + '_matdyn',1,ram,4,'matdyn.in','matdyn.out','matdyn.x',jobname + '_q2r'),
+           matdyn_sub = make_job_sub(jobname + '_matdyn',1,ram,4,'','','',jobname + '_q2r'),
            matdyn_cond_sub = check_cond_sub(9),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
