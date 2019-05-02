@@ -1670,6 +1670,14 @@ then
 
 cat > job.sh << EOF
 {iso_scf_sub}
+#get the number of bands from the scf.out file and put them in the nscf.in file
+num_of_bands=\$(grep nbnd nscf.in | awk '{{print \$3}}')
+if [ \$num_of_bands -eq 0 ]
+then
+    num_of_bands=\$(grep "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
+    line=\$(grep -n nbnd nscf.in | cut -d : -f 1)
+    sed -i "\${{line}}s/[^ ]*[^ ]/\${{num_of_bands}}/3" nscf.in
+fi
 EOF
 
 {iso_scf_cond_sub}
