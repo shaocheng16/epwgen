@@ -870,7 +870,7 @@ cp ph.in ph_start.in
 echo "    start_irr = 0" >> ph_start.in
 echo "    last_irr  = 0" >> ph_start.in
 echo "    /" >> ph_start.in
-mpirun ph.x -npool {num_of_cpu_ph} -in ph_start.in > ph_start.out
+mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
 EOF
 
 {ph_init_cond_sub}
@@ -1276,7 +1276,7 @@ fi
            elb_ip_cond_sub = check_cond_sub(3),
            ph_scf_sub = make_job_sub(jobname + '_ph_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            ph_scf_cond_sub = check_cond_sub(4, True),
-           ph_init_sub = make_job_sub(jobname + '_ph_init',num_of_cpu_ph,ram,4,'','','',jobname + '_ph_scf'),
+           ph_init_sub = make_job_sub(jobname + '_ph_init',1,ram,4,'','','',jobname + '_ph_scf'),
            ph_init_cond_sub = check_cond_sub(5),
            ph_all_sub = make_job_sub(jobname + '_ph_all',num_of_cpu_ph,ram,q_t,'ph_all.in','ph_all.out','ph.x',jobname + '_ph_init'),
            ph_manager_sub = make_job_sub(jobname + '_ph_manager',1,ram,4,'','','',jobname + '_ph_init'),
