@@ -1310,8 +1310,8 @@ wannier_init={projections_epw}
 #bands including other bands should they fall in this window. You can narrow the inner and outer window with dE which specifies...
 #the value in eV that gets added/subtracted to the bottom/top of the inner window (i.e. negative values will broaden it).
 auto_window={auto_window}
-dE_inner=0.1
-dE_outer=-1.0
+dE_inner=0.05
+dE_outer=0.0
 
 
 #Set the inner and outer wannierization energy windows manually (in eV). You only need to specify the values of this block...
@@ -1333,8 +1333,7 @@ outer_top={outer_top}
 #6: phonon linewidth and a2F calculation in fine grid 
 #7: scf calculation for solving the isotropic Eliashberg functions (Tc)
 #8: nscf caclulation for Tc
-#9: wannierization and calculation of electron-phonon coupling coefficients for Tc
-#10: solving the isotropic Eliashberg functions
+#9: solving the isotropic Eliashberg functions
 #(#11: Plot the Wannier and Bloch bands using gnuplot on the cluster (make sure x11 forwarding is enabled)...
 #     ...This won't submit a job but simply plot the Wannier bands obtained after #3 and compare them to the...
 #     ...Bloch bands obtained through pw.x (located in ELB). Furthermore the energy windows will also be plotted...
