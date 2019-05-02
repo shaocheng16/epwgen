@@ -1477,6 +1477,20 @@ do
     sed -i -e "${{line}}s/[^ ]*[^ ]/'$p'/3" $base_dir/EPM/wannier_epm.in
 done
 
+line=$(grep -n nbndsub $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+sed -i -e "${line}s/[^ ]*[^ ]/$num_of_wan/3" $base_dir/ISO/eliashberg_iso.in
+line=$(grep -n nbndskip $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+sed -i -e "${line}s/[^ ]*[^ ]/$wan_min/3" $base_dir/ISO/eliashberg_iso.in
+
+index=0
+for p in "${wannier_init[@]}"
+do
+    ((index++))
+    line=$(grep -n "proj(${index})" $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+    sed -i -e "${line}s/[^ ]*[^ ]/'$p'/3" $base_dir/ISO/eliashberg_iso.in
+done
+
+
 line=$(grep -n dis_win_min $base_dir/EPM/wannier.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_bottom/3" $base_dir/EPM/wannier.in
 line=$(grep -n dis_win_max $base_dir/EPM/wannier.in | cut -d : -f 1)
