@@ -1478,16 +1478,16 @@ do
 done
 
 line=$(grep -n nbndsub $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${line}s/[^ ]*[^ ]/$num_of_wan/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$num_of_wan/3" $base_dir/ISO/eliashberg_iso.in
 line=$(grep -n nbndskip $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${line}s/[^ ]*[^ ]/$wan_min/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$wan_min/3" $base_dir/ISO/eliashberg_iso.in
 
 index=0
-for p in "${wannier_init[@]}"
+for p in "${{wannier_init[@]}}"
 do
     ((index++))
-    line=$(grep -n "proj(${index})" $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-    sed -i -e "${line}s/[^ ]*[^ ]/'$p'/3" $base_dir/ISO/eliashberg_iso.in
+    line=$(grep -n "proj(${{index}})" $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
+    sed -i -e "${{line}}s/[^ ]*[^ ]/'$p'/3" $base_dir/ISO/eliashberg_iso.in
 done
 
 
