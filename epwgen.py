@@ -2193,7 +2193,7 @@ for i in range(0, len(dist_bands)):
     #adjust the inner band using these maximum points of the disturbing band
     if largest_local > smallest_inner and largest_local < largest_inner:
         smallest_inner = largest_local
-    elif smallest_local < largest_inner and  smallest_local > smallest_inner:
+    if smallest_local < largest_inner and  smallest_local > smallest_inner:
         largest_inner = smallest_local
 
 #increment band index by 1 as they start at 1 in qe
