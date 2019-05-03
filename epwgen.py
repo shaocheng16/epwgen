@@ -1,6 +1,6 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'Pb'  
+pf = 'KTO'  
 #name of the parent directory created by this script
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
@@ -13,7 +13,7 @@ num_of_cpu_scf = 8
 #irreducible modes, each of these calculations will be run with the specified amount of CPUs)
 num_of_cpu_ph = 8
 #number of processors to be used for any epw calculation
-num_of_cpu_epw = 8
+num_of_cpu_epw = 24
 #memory per cpu
 ram = 1024
 #time limit in hours for scf, nscf and bands calculations
@@ -58,15 +58,15 @@ modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
 #'''
 lattice = '''
 CELL_PARAMETERS angstrom
-        4.8803680730      0.0000000000         0.0000000000
-        0.0000000000      4.8803680730         0.0000000000
-        0.0000000000      0.0000000000         4.8803680730
+        4.0000000000      0.0000000000         0.0000000000
+        0.0000000000      4.0000000000         0.0000000000
+        0.0000000000      0.0000000000         4.0000000000
 '''
 #number of atoms in the unit cell
-num_of_atoms = 4
+num_of_atoms = 5
 
 #number of distinct atom types in unit cell
-num_of_atom_types = 1                 
+num_of_atom_types = 3                 
 
 #atom type specification as required in pw.x input file
 #Syntax:
@@ -77,8 +77,9 @@ num_of_atom_types = 1
 #etc.
 #'''
 atoms = '''                            
-ATOMIC_SPECIES
-Pb 207.2 pb_s.UPF
+K 39.0983 K_ONCV_PBE_FR_4.0.upf
+Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
+O 15.9994 O_ONCV_PBE_FR_4.0.upf
 '''
 
 #Atomic positions in relative positions to the lattice vectors
@@ -93,10 +94,11 @@ Pb 207.2 pb_s.UPF
 
 atom_positions = '''
 ATOMIC_POSITIONS crystal
-Pb     0.000000000         0.000000000         0.000000000
-Pb     0.000000000         0.500000000         0.500000000
-Pb     0.500000000         0.000000000         0.500000000
-Pb     0.500000000         0.500000000         0.000000000
+  K  0.5000000000000000  0.5000000000000000  0.5000000000000000
+  Ta 0.0000000000000000  0.0000000000000000  0.0000000000000000
+  O  0.5000000000000000  0.0000000000000000  0.0000000000000000
+  O  0.0000000000000000  0.5000000000000000  0.0000000000000000
+  O  0.0000000000000000  0.0000000000000000  0.5000000000000000
 '''
 
 #____________________CALCULATION_PARAMETERS____________________#
@@ -107,9 +109,9 @@ k_x = 6
 k_y = 6
 k_z = 6
 #coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other
-q_x = 3
-q_y = 3
-q_z = 3
+q_x = 2
+q_y = 2
+q_z = 2
 #fine grid sizes
 kf_x = 12
 kf_y = 12
@@ -126,7 +128,7 @@ random_nqf = 500
 #number of bands calculated. Set to 0 if this should be determined automatically.
 num_of_bands = 0    
 #amount of additional charge per unit cell (electrons negative, holes positive).
-nelect = 0.0
+nelect = -0.1
 #accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable)
 asr_type = 'simple'
 
@@ -136,7 +138,7 @@ delta_scf = '1.0d-8'
 delta_ph = '1.0d-14'
 
 #scf diagonalization algorithm ('cg' or 'david'). 
-diag_algo = 'david'
+diag_algo = 'cg'
 
 #spin-orbit coupling
 soc = True
@@ -164,11 +166,11 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized. 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 8
+num_of_wan = 6
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['random']
+wannier_init = ['Ta:l=2,mr=2,3,5']
 
 #automatic wannierization window determination
 auto_window = True
