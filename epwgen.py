@@ -1315,7 +1315,7 @@ wannier_init={projections_epw}
 #bands including other bands should they fall in this window. You can narrow the inner and outer window with dE which specifies...
 #the value in eV that gets added/subtracted to the bottom/top of the inner window (i.e. negative values will broaden it).
 auto_window={auto_window}
-dE_inner=0.0
+dE_inner=0.05
 dE_outer=0.0
 
 
