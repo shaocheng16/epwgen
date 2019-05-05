@@ -8,21 +8,21 @@ jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
 pps_dir = 'ppsdir' 
 #number of processors to be used for scf, bands and nscf calculations
-num_of_cpu_scf = 8
+num_of_cpu_scf = 16
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
 #irreducible modes, each of these calculations will be run with the specified amount of CPUs)
 num_of_cpu_ph = 8
 #number of processors to be used for any epw calculation
-num_of_cpu_epw = 24
+num_of_cpu_epw = 48
 #memory per cpu
 ram = 1024
 #time limit in hours for scf, nscf and bands calculations
-scf_t = 16
+scf_t = 4
 #time limit in hours for phonon calculations, i.e. for the whole calculation or per irreducbile q-point or irreducible representation
 #depending on whether the phonon calculations are split or not
-q_t = 8
+q_t = 4
 #time limit in hours for epw calculations 
-epw_t = 48
+epw_t = 4
 #specify if phonon calculations should be split into calculations of irreducible q-points
 split_q = True
 #specify if phonon calculations should additionally be split into calculations of irreducible represenations.
