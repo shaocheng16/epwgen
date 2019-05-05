@@ -17,12 +17,12 @@ num_of_cpu_epw = 24
 #memory per cpu
 ram = 1024
 #time limit in hours for scf, nscf and bands calculations
-scf_t = 4
+scf_t = 16
 #time limit in hours for phonon calculations, i.e. for the whole calculation or per irreducbile q-point or irreducible representation
 #depending on whether the phonon calculations are split or not
-q_t = 4
+q_t = 8
 #time limit in hours for epw calculations 
-epw_t = 4
+epw_t = 48
 #specify if phonon calculations should be split into calculations of irreducible q-points
 split_q = True
 #specify if phonon calculations should additionally be split into calculations of irreducible represenations.
@@ -58,9 +58,9 @@ modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
 #'''
 lattice = '''
 CELL_PARAMETERS angstrom
-        4.0000000000      0.0000000000         0.0000000000
-        0.0000000000      4.0000000000         0.0000000000
-        0.0000000000      0.0000000000         4.0000000000
+   4.006337510   0.000000000   0.000000000
+   0.000000000   4.006337510   0.000000000
+   0.000000000   0.000000000   4.006337510
 '''
 #number of atoms in the unit cell
 num_of_atoms = 5
@@ -78,7 +78,7 @@ num_of_atom_types = 3
 #'''
 atoms = '''                            
 K 39.0983 K_ONCV_PBE_FR_4.0.upf
-Ta 180.94788 K_ONCV_PBE_FR_4.0.upf
+Ta 180.94788 Ta_ONCV_PBE_FR_4.0.upf
 O 15.9994 O_ONCV_PBE_FR_4.0.upf
 '''
 
@@ -94,41 +94,41 @@ O 15.9994 O_ONCV_PBE_FR_4.0.upf
 
 atom_positions = '''
 ATOMIC_POSITIONS crystal
-  K  0.5000000000000000  0.5000000000000000  0.5000000000000000
-  Ta 0.0000000000000000  0.0000000000000000  0.0000000000000000
-  O  0.5000000000000000  0.0000000000000000  0.0000000000000000
-  O  0.0000000000000000  0.5000000000000000  0.0000000000000000
-  O  0.0000000000000000  0.0000000000000000  0.5000000000000000
+K  0.000000 0.000000 0.000000 
+Ta 0.500000 0.500000 0.500000
+O  0.000000 0.500000 0.500000 
+O  0.500000 0.000000 0.500000 
+O  0.500000 0.500000 0.000000
 '''
 
 #____________________CALCULATION_PARAMETERS____________________#
 #plane wave cut-off energy in Ry
-e_cut = 30  
+e_cut = 80  
 #coarse k-grid size
-k_x = 6
-k_y = 6
-k_z = 6
+k_x = 8
+k_y = 8
+k_z = 8
 #coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other
 q_x = 2
 q_y = 2
 q_z = 2
 #fine grid sizes
-kf_x = 12
-kf_y = 12
-kf_z = 12
-qf_x = 12
-qf_y = 12
-qf_z = 12
+kf_x = 24
+kf_y = 24
+kf_z = 24
+qf_x = 24
+qf_y = 24
+qf_z = 24
 #for random fine grids, set random_sampling to True and specify the number of respective random points. Note that for
 #the Eliashberg functions no random fine grids can be used which is why you still need to specify fine grids above in that case
 random_sampling = True
-random_nkf = 1000
-random_nqf = 500
+random_nkf = 100000
+random_nqf = 50000
 
 #number of bands calculated. Set to 0 if this should be determined automatically.
 num_of_bands = 0    
 #amount of additional charge per unit cell (electrons negative, holes positive).
-nelect = -0.1
+nelect = -0.01
 #accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable)
 asr_type = 'simple'
 
@@ -141,7 +141,7 @@ delta_ph = '1.0d-14'
 diag_algo = 'cg'
 
 #spin-orbit coupling
-soc = True
+soc = False
                     
 
 #____________________HIGH_SYMMETRY_LINES_______________________#
@@ -166,7 +166,7 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized. 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 6
+num_of_wan = 3
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
@@ -187,11 +187,10 @@ outer_bottom = 0.0
 outer_top = 0.0
 
 #___________________CRITICAL TEMPERATURE_______________________#
-#!!!!!!!!!!!!!!!!!!! NOT WORKING !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 #minimum temperature in K for which superconducting gap is calculated
-T_min = 0
+T_min = 0.1
 #maximum temperature in K
-T_max = 10
+T_max = 5
 #temperature points between T_min and T_max for which superconducting gap is calculated
 num_of_T = 10
 #___________________________END________________________________#
@@ -1312,7 +1311,7 @@ wannier_init={projections_epw}
 #bands including other bands should they fall in this window. You can narrow the inner and outer window with dE which specifies...
 #the value in eV that gets added/subtracted to the bottom/top of the inner window (i.e. negative values will broaden it).
 auto_window={auto_window}
-dE_inner=0.05
+dE_inner=0.0
 dE_outer=0.0
 
 
@@ -2041,7 +2040,7 @@ prefix = '{pf}' #get the prefix directly from this generation script
 SOC = hasSOC(prefix)
 
 # If SOC detected, but dyn is not in XML always convert it 
-if SOC=='true' and not os.path.isfile('{pf}.dyn1.xml'):
+if SOC=='true' and not os.path.isfile(prefix + '.dyn1.xml'):
     dyn2xml(prefix)
 
 # If no SOC detected, do nothing 
@@ -2141,7 +2140,7 @@ ifs = open(bands_file, "r")
 for e in ifs:
     e_vec.append(float(e))
 
-#get the index (wan_min) of the first band that crosses the fermi energy (indices starting at 0)
+#get the index (wan_min) of the first band that gets wannierized i.e. crosses the fermi energy (indices starting at 0)
 wan_min = 0
 for i in range(0, bands):
     for j in range(0, points):
@@ -2151,10 +2150,8 @@ for i in range(0, bands):
             break
     if not wan_min == 0:
         break
-#and from that get the lowest unwannierized band
-wan_min -= 1
 
-if wan_min + num_of_wan > bands - 1:
+if wan_min + num_of_wan > bands :
     sys.exit("You chose too many bands to wannierize")
     
 #get the outer window by finding the smallest and largest values of the specified bands
