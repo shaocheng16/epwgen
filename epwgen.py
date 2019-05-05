@@ -76,7 +76,8 @@ num_of_atom_types = 3
 #$atom_label_2 $atom_weight_2 $pps_filename_2
 #etc.
 #'''
-atoms = '''                            
+atoms = '''      
+ATOMIC_SPECIES
 K 39.0983 K_ONCV_PBE_FR_4.0.upf
 Ta 180.94788 Ta_ONCV_PBE_FR_4.0.upf
 O 15.9994 O_ONCV_PBE_FR_4.0.upf
