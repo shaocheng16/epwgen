@@ -589,6 +589,9 @@ wannier_epm_in = ['''
     
     asr_typ     = '{asr_type}'
     
+    efermi_read = .true.
+    fermi_energy = 0.0
+    
     nk1 = {k_x}
     nk2 = {k_y}
     nk3 = {k_z}
@@ -1403,6 +1406,8 @@ tail -n +3 $ref_dir/PHB/*.dyn0 >> $base_dir/ISO/eliashberg_iso.in
 
 #get and set the Fermi energy where necessary
 Ef=$(grep Fermi $ref_dir/ELB/scf.out | awk '{{print $5}}')
+line=$(grep -n fermi_energy $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
+sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/EPM/wannier_epm.in
 line=$(grep -n fermi_energy $base_dir/EPM/ph_lw.in | cut -d : -f 1)
 sed -i -e "${{line}}s/[^ ]*[^ ]/$Ef/3" $base_dir/EPM/ph_lw.in
 line=$(grep -n fermi_energy $base_dir/EPM/a2F.in | cut -d : -f 1)
