@@ -2201,8 +2201,7 @@ for i in range(0, len(dist_bands)):
     if smallest_local < largest_inner and  smallest_local > smallest_inner:
         largest_inner = smallest_local
 
-#increment band index by 1 as they start at 1 in qe
-wan_min += 1
+#band index starts at 1 in q-e making the the wan_min of this script the proper wan_min for EPW (i.e. the last unwannierized band)
 print("%12.8f    %12.8f          %12.8f          %12.8f          %d" %(smallest_inner, largest_inner, smallest_outer, largest_outer, wan_min))
 
 ''']
