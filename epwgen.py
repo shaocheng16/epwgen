@@ -6,7 +6,7 @@ base_dir = pf
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
-pps_dir = '/cluster/scratch/mnoe/QE/pps' 
+pps_dir = 'pps' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 4
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
@@ -62,10 +62,10 @@ CELL_PARAMETERS angstrom
     0.00000000000000    2.44018386041000    2.44018386041000
    -2.44018386041000    2.44018386041000    0.00000000000000
 '''
-#number of atoms in the unit cell
+#number of atoms in the unit cell (pw::nat)
 num_of_atoms = 1
 
-#number of distinct atom types in unit cell
+#number of distinct atom types in unit cell (pw::ntyp)
 num_of_atom_types = 1                 
 
 #atom type specification as required in pw.x input file
@@ -97,45 +97,46 @@ Pb 0.00 0.00 0.00
 '''
 
 #____________________CALCULATION_PARAMETERS____________________#
-#plane wave cut-off energy in Ry
+#plane wave cut-off energy in Ry (pw::ecutwfc)
 e_cut = 30  
-#coarse k-grid size
+#coarse k-grid size (pw::nk1 etc.)
 k_x = 8
 k_y = 8
 k_z = 8
-#coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other
+#coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other (ph::nq1 etc.)
 q_x = 4
 q_y = 4
 q_z = 4
-#fine grid sizes
+#fine grid sizes (epw::nkf1 etc.)
 kf_x = 12
 kf_y = 12
 kf_z = 12
 qf_x = 12
 qf_y = 12
 qf_z = 12
-#for random fine grids, set random_sampling to True and specify the number of respective random points. Note that for
-#the Eliashberg functions no random fine grids can be used which is why you still need to specify fine grids above in that case
-random_sampling = False
+#for random fine grids, set random_sampling to True and specify the number of respective random points (epw::rand_k, epw::rand_q, epw::rand_nk, epw::rand_nq)
+#Note that for the Eliashberg functions no random fine grids can be used which is why you still need to specify fine grids above and 
+#the electron-phonon coefficients get calculated again
+random_sampling = False 
 random_nkf = 80000
 random_nqf = 40000
 
-#number of bands calculated. Set to 0 if this should be determined automatically.
+#number of bands calculated. Set to 0 if this should be determined automatically (pw::nbnd)
 num_of_bands = 0    
-#amount of additional charge per unit cell (electrons negative, holes positive).
+#amount of additional charge per unit cell - electrons negative, holes positive (pw::tot_charge)
 nelect = 0.0
-#accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable)
+#accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable) (q2r::zasr)
 asr_type = 'simple'
 
-#scf convergence threshold in Ry
+#scf convergence threshold in Ry (pw::conv_thr)
 delta_scf = '1.0d-10'
-#phonon convergence threshold in Ry^2
+#phonon convergence threshold in Ry^2 (ph::tr2_ph)
 delta_ph = '1.0d-12'
 
-#scf diagonalization algorithm ('cg' or 'david'). 
+#scf diagonalization algorithm - 'cg' or 'david' (pw::diagonalization)
 diag_algo = 'cg'
 
-#spin-orbit coupling
+#spin-orbit coupling (pw::noncolin, pw::lspinorb)
 soc = False
                     
 
@@ -160,7 +161,7 @@ path_prec = 100
 #The parameters for the wannierization can also be changed in the epw.sh script once you have obtained 
 #the electron bands and you want to adjust them. 
 
-#number of bands at and above the Fermi energy that get wannierized. 
+#number of bands at and above the Fermi energy that get wannierized (epw::nbndsub). 
 #This needs to correspond to the right number implied by your specified projections.
 num_of_wan = 4
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
@@ -173,21 +174,25 @@ auto_window = True
 
 #manual wannierization window specification. You only need to specify these parameters
 #if auto_window = False or if the automatic determination doesn't work.
-#highest band that does not get wannierized,i.e. the $num_of_wan bands after band $wan_min get wannierized
+#highest band that does not get wannierized,i.e. the $num_of_wan bands after band $wan_min get wannierized (epw::nbndskip)
 wan_min = 0
-#inner wannierization window (in eV)
+#inner wannierization window in eV (epw::dis_froz_min, epw::dis_froz_max)
 inner_bottom = 0.0
 inner_top = 0.0
-#outer wannierization window (in eV)
+#outer wannierization window in eV (epw::dis_win_min, epw::dis_win_max)
 outer_bottom = 0.0
 outer_top = 0.0
 
 #___________________CRITICAL TEMPERATURE_______________________#
-#minimum temperature in K for which superconducting gap is calculated
+#specify if double delta approximation should be used or not (epw::delta_approx)
+double_delta = False
+#temperature in K for Fermi occupations if double delta approximation is not used (epw::eptemp)
+T_F = 0.075
+#minimum temperature in K for which Eliashberg functions are solved (epw::tempsmin)
 T_min = 0.1
-#maximum temperature in K
+#maximum temperature in K (epw::tempsmax)
 T_max = 5
-#temperature points between T_min and T_max for which superconducting gap is calculated
+#temperature points between T_min and T_max for which superconducting gap is calculated (epw::nstemps)
 num_of_T = 10
 #___________________________END________________________________#
 #____________________NOW_RUN_THE_SCRIPT________________________#
@@ -366,7 +371,9 @@ if soc == True:
     noncolin_enable = '.true.'
     lspinorb_enable = '.true.'
    
-        
+double_delta_enable = '.false.'
+if double_delta == True:
+    double_delta_enable = '.true.'        
 #_______________________________________INPUT_LISTS_______________________________________#
 #_________________________________________________________________________________________#
 scf_in = ['''
@@ -532,7 +539,7 @@ wannier_in = ['''
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
     nbndskip    =  {wan_min}            
-    num_iter    = 10000           
+    num_iter    = 1000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -570,7 +577,7 @@ wannier_epm_in = ['''
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
     nbndskip    =  {wan_min}            
-    num_iter    = 10000           
+    num_iter    = 1000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -582,10 +589,6 @@ wannier_epm_in = ['''
     {kpoints_wannier}
    
     asr_typ     = '{asr_type}'
-
-    fsthick     = 0.5
-    eptemp      = 0.075
-    degaussw    = 0.05 
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -618,10 +621,10 @@ ph_lw_in = ['''
     elph        = .true.          
     
     phonselfen = .true.          
-    delta_approx = .true.     
+    delta_approx = {double_delta_enable}
 
     fsthick     = 0.5
-    eptemp      = 0.075
+    eptemp      = {T_F}
     degaussw    = 0.05             
     
     efermi_read = .true.
@@ -637,7 +640,7 @@ ph_lw_in = ['''
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, double_delta_enable = double_delta_enable, T_F = T_F,
            kf_x = kf_x, kf_y = kf_y, kf_z = kf_z, k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
            fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z,True,pf))]
 
@@ -655,11 +658,11 @@ a2F_in = ['''
     elph        = .true.                       
     
     phonselfen  = .true.
-    delta_approx = .true.
+    delta_approx = {double_delta_enable}
     a2f         = .true.
 
     fsthick     = 0.5
-    eptemp      = 0.075
+    eptemp      = {T_F}
     degaussw    = 0.05            
     
     efermi_read = .true.
@@ -675,7 +678,8 @@ a2F_in = ['''
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z, qf_x = qf_x, qf_y = qf_y, qf_z = qf_z,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, double_delta_enable = double_delta_enable, T_F = T_F,
+           kf_x = kf_x, kf_y = kf_y, kf_z = kf_z, qf_x = qf_x, qf_y = qf_y, qf_z = qf_z,
            k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
            fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
 
@@ -698,7 +702,7 @@ eliashberg_iso = ['''
     wannierize  = .true.         
     nbndsub     =  {num_of_wan}             
     nbndskip    =  {wan_min}            
-    num_iter    = 10000           
+    num_iter    = 1000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -709,8 +713,10 @@ eliashberg_iso = ['''
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
 
+    delta_approx = {double_delta_enable}
+
     fsthick     = 0.5
-    eptemp      = 0.075
+    eptemp      = {T_F}
     degaussw    = 0.05 
     
     laniso      = .false.         
@@ -725,7 +731,8 @@ eliashberg_iso = ['''
             
     tempsmin = {T_min}            
     tempsmax = {T_max}
-    nstemp = {num_of_T}
+    nstemp   = {num_of_T}
+    wscfut   = 0.1
 
     muc     = 0.09                 
 
@@ -745,7 +752,8 @@ eliashberg_iso = ['''
     {fine_grids}
 /
 '''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections, 
-           kpoints_wannier = kpoints_wannier, T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
+           kpoints_wannier = kpoints_wannier, double_delta_enable = double_delta_enable, T_F = T_F, 
+           T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
            qf_x = qf_x, qf_y = qf_y, qf_z = qf_z, k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
            fine_grids = generate_fine_grids(False,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
 
