@@ -6,7 +6,7 @@ base_dir = pf
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
-pps_dir = 'ppsdir' 
+pps_dir = '/cluster/scratch/mnoe/QE/pps' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 4
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
@@ -191,11 +191,19 @@ dis_froz_max = 0.0
 dis_win_min = 0.0
 dis_win_max = 0.0
 
-#___________________CRITICAL TEMPERATURE_______________________#
+#___________________LINEWIDTH/A2F/ELIASHBERG_______________________#
 #specify if double delta approximation should be used or not (epw::delta_approx)
 delta_approx = False
 #temperature in K for Fermi occupations if double delta approximation is not used (epw::eptemp)
 eptemp = 0.075
+#Width of the Fermi surface window to take into account states in the self-energy delta functions in eV (epw::fsthick)
+fsthick = 1
+#Smearing in the energy-conserving delta functions in eV (epw::degaussw)
+degaussw = 0.025
+#Upper limit over frequency integration/summation in the Eliashberg equations in eV (epw::wscut)
+wscut = 1
+#Coulomb repulsion parameter mu* (epw::muc)
+muc = 0.9
 #minimum temperature in K for which Eliashberg functions are solved (epw::tempsmin)
 tempsmin = 1
 #maximum temperature in K (epw::tempsmax)
@@ -631,9 +639,9 @@ ph_lw_in = ['''
     phonselfen = .true.          
     delta_approx = {delta_approx_enable}
 
-    fsthick     = 0.5
+    fsthick     = {fsthick}
     eptemp      = {eptemp}
-    degaussw    = 0.05             
+    degaussw    = {degaussw}             
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -648,7 +656,7 @@ ph_lw_in = ['''
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, delta_approx_enable = delta_approx_enable, eptemp = eptemp,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, delta_approx_enable = delta_approx_enable, fsthick = fsthick, eptemp = eptemp, degaussw = degaussw,
            nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3, nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
            fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3,True,pf))]
 
@@ -669,9 +677,9 @@ a2F_in = ['''
     delta_approx = {delta_approx_enable}
     a2f         = .true.
 
-    fsthick     = 0.5
+    fsthick     = {fsthick}
     eptemp      = {eptemp}
-    degaussw    = 0.05            
+    degaussw    = {degaussw}        
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -686,7 +694,7 @@ a2F_in = ['''
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, delta_approx_enable = delta_approx_enable, eptemp = eptemp,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, delta_approx_enable = delta_approx_enable, fsthick = fsthick, eptemp = eptemp, degaussw = degaussw,
            nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3, nqf1 = nqf1, nqf2 = nqf2, nqf3 = nqf3,
            nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
            fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
@@ -723,10 +731,15 @@ eliashberg_iso = ['''
 
     delta_approx = {delta_approx_enable}
 
-    fsthick     = 0.5
+    fsthick     = {fsthick}
     eptemp      = {eptemp}
-    degaussw    = 0.05 
-    
+    degaussw    = {degaussw}
+    wscut       = {wscut}
+    muc         = {muc}
+
+    efermi_read = .true.
+    fermi_energy = 0.0
+
     laniso      = .false.         
     liso        = .true.          
 
@@ -740,14 +753,8 @@ eliashberg_iso = ['''
     tempsmin = {tempsmin}            
     tempsmax = {tempsmax}
     nstemp   = {nstemps}
-    wscut   = 0.1
-
-    muc     = 0.09                 
 
     mp_mesh_k = .true.                
-    
-    efermi_read = .true.
-    fermi_energy = 0.0
     
     nk1 = {nk1}
     nk2 = {nk2}
@@ -760,8 +767,8 @@ eliashberg_iso = ['''
     {fine_grids}
 /
 '''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, projections = projections, 
-           kpoints_wannier = kpoints_wannier, delta_approx_enable = delta_approx_enable, eptemp = eptemp, 
-           tempsmin = tempsmin, tempsmax = tempsmax, nstemps = nstemps, nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3,
+           kpoints_wannier = kpoints_wannier, delta_approx_enable = delta_approx_enable, fsthick = fsthick, eptemp = eptemp,  degaussw = degaussw, 
+           wscut = wscut, muc = muc, tempsmin = tempsmin, tempsmax = tempsmax, nstemps = nstemps, nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3,
            nqf1 = nqf1, nqf2 = nqf2, nqf3 = nqf3, nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
            fine_grids = generate_fine_grids(False,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
 

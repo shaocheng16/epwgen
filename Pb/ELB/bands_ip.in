@@ -1,0 +1,7 @@
+
+&BANDS
+ prefix='Pb'
+ outdir='.'
+ filband = 'Pbbands.dat'
+ lsym=.true.
+/
