@@ -1,28 +1,28 @@
 #______________________RUN_ENVIRONMENT_______________________#
 #prefix for any data files
-pf = 'KTO'  
+pf = 'Pb'
 #name of the parent directory created by this script
 base_dir = pf 
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
-pps_dir = 'ppsdir' 
+pps_dir = '/cluster/scratch/mnoe/QE/pps' 
 #number of processors to be used for scf, bands and nscf calculations
-num_of_cpu_scf = 16
+num_of_cpu_scf = 4
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
 #irreducible modes, each of these calculations will be run with the specified amount of CPUs)
-num_of_cpu_ph = 8
+num_of_cpu_ph = 4
 #number of processors to be used for any epw calculation
-num_of_cpu_epw = 48
+num_of_cpu_epw = 16
 #memory per cpu
 ram = 1024
 #time limit in hours for scf, nscf and bands calculations
-scf_t = 4
+scf_t = 1
 #time limit in hours for phonon calculations, i.e. for the whole calculation or per irreducbile q-point or irreducible representation
 #depending on whether the phonon calculations are split or not
-q_t = 4
+q_t = 1
 #time limit in hours for epw calculations 
-epw_t = 4
+epw_t = 1
 #specify if phonon calculations should be split into calculations of irreducible q-points
 split_q = True
 #specify if phonon calculations should additionally be split into calculations of irreducible represenations.
@@ -58,15 +58,15 @@ modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
 #'''
 lattice = '''
 CELL_PARAMETERS angstrom
-   4.006337510   0.000000000   0.000000000
-   0.000000000   4.006337510   0.000000000
-   0.000000000   0.000000000   4.006337510
+   -2.44018386041000    0.00000000000000    2.44018386041000
+    0.00000000000000    2.44018386041000    2.44018386041000
+   -2.44018386041000    2.44018386041000    0.00000000000000
 '''
 #number of atoms in the unit cell
-num_of_atoms = 5
+num_of_atoms = 1
 
 #number of distinct atom types in unit cell
-num_of_atom_types = 3                 
+num_of_atom_types = 1                 
 
 #atom type specification as required in pw.x input file
 #Syntax:
@@ -78,9 +78,7 @@ num_of_atom_types = 3
 #'''
 atoms = '''      
 ATOMIC_SPECIES
-K 39.0983 K_ONCV_PBE_FR_4.0.upf
-Ta 180.94788 Ta_ONCV_PBE_FR_4.0.upf
-O 15.9994 O_ONCV_PBE_FR_4.0.upf
+Pb 207.2 pb_s.UPF
 '''
 
 #Atomic positions in relative positions to the lattice vectors
@@ -95,48 +93,44 @@ O 15.9994 O_ONCV_PBE_FR_4.0.upf
 
 atom_positions = '''
 ATOMIC_POSITIONS crystal
-K  0.000000 0.000000 0.000000 
-Ta 0.500000 0.500000 0.500000
-O  0.000000 0.500000 0.500000 
-O  0.500000 0.000000 0.500000 
-O  0.500000 0.500000 0.000000
+Pb 0.00 0.00 0.00
 '''
 
 #____________________CALCULATION_PARAMETERS____________________#
 #plane wave cut-off energy in Ry
-e_cut = 80  
+e_cut = 30  
 #coarse k-grid size
 k_x = 8
 k_y = 8
 k_z = 8
 #coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other
-q_x = 2
-q_y = 2
-q_z = 2
+q_x = 4
+q_y = 4
+q_z = 4
 #fine grid sizes
-kf_x = 24
-kf_y = 24
-kf_z = 24
-qf_x = 24
-qf_y = 24
-qf_z = 24
+kf_x = 12
+kf_y = 12
+kf_z = 12
+qf_x = 12
+qf_y = 12
+qf_z = 12
 #for random fine grids, set random_sampling to True and specify the number of respective random points. Note that for
 #the Eliashberg functions no random fine grids can be used which is why you still need to specify fine grids above in that case
-random_sampling = True
-random_nkf = 100000
-random_nqf = 50000
+random_sampling = False
+random_nkf = 80000
+random_nqf = 40000
 
 #number of bands calculated. Set to 0 if this should be determined automatically.
 num_of_bands = 0    
 #amount of additional charge per unit cell (electrons negative, holes positive).
-nelect = -0.01
+nelect = 0.0
 #accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable)
 asr_type = 'simple'
 
 #scf convergence threshold in Ry
-delta_scf = '1.0d-8'
+delta_scf = '1.0d-10'
 #phonon convergence threshold in Ry^2
-delta_ph = '1.0d-14'
+delta_ph = '1.0d-12'
 
 #scf diagonalization algorithm ('cg' or 'david'). 
 diag_algo = 'cg'
@@ -149,13 +143,14 @@ soc = False
 #define an array of high symmetry points.
 #Syntax: ['$point_label_1 $k_x1 $k_y1 $k_z1', '$point_label_2 $k_x2 $k_y2 $k_z2', etc]
 hisym_points = ['G 0 0 0', 
-                'X 0.5 0 0',
-                'M 0.5 0.5 0',
-                'R 0.5 0.5 0.5'
+                'X 0 0.5 0.5',
+                'L 0.5 0.5 0.5',
+                'K 0.375 0.375 0.75',
+                'W 0.25 0.50 0.75'
                ]
 #define the high symmetry paths using the point labels defined in hisym_points
 #Syntax: ['$point_label_1', '$point_label_2', '$point_label_1', etc. ]
-hisym_path = ['G', 'M', 'X', 'G', 'R', 'M', 'G']
+hisym_path = ['G', 'X', 'W', 'L', 'K', 'G', 'L']
 
 #number of interpolation points per high symmetry line
 path_prec = 100
@@ -167,11 +162,11 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized. 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 3
+num_of_wan = 4
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
-wannier_init = ['Ta:l=2,mr=2,3,5']
+wannier_init = ['Pb:sp3']
 
 #automatic wannierization window determination
 auto_window = True
@@ -183,7 +178,7 @@ wan_min = 0
 #inner wannierization window (in eV)
 inner_bottom = 0.0
 inner_top = 0.0
-#outer wannierization window (n eV)
+#outer wannierization window (in eV)
 outer_bottom = 0.0
 outer_top = 0.0
 
@@ -387,8 +382,9 @@ scf_in = ['''
     nat         = {num_of_atoms}       
     ntyp        = {num_of_atom_types}   
     ecutwfc     = {e_cut}               
-    occupations = 'smearing'           
-    degauss     = 7.35d-4               
+    occupations = 'smearing',
+    smearing    = 'marzari-vanderbilt',
+    degauss     = 0.05
     tot_charge  = {nelect}   
     noncolin    = {noncolin_enable}
     lspinorb    = {lspinorb_enable}
@@ -420,8 +416,9 @@ bands_in = ['''
     nat         = {num_of_atoms}        
     ntyp        = {num_of_atom_types}   
     ecutwfc     = {e_cut}               
-    occupations = 'smearing'            
-    degauss     = 7.35d-4               
+    occupations = 'smearing',
+    smearing    = 'marzari-vanderbilt',
+    degauss     = 0.05
     tot_charge  = {nelect}              
     nbnd        = {num_of_bands}  
     noncolin    = {noncolin_enable}
@@ -501,8 +498,9 @@ nscf_in = ['''
     nat         = {num_of_atoms}        
     ntyp        = {num_of_atom_types}  
     ecutwfc     = {e_cut}               
-    occupations = 'smearing'            
-    degauss     = 7.35d-4               
+    occupations = 'smearing',
+    smearing    = 'marzari-vanderbilt',
+    degauss     = 0.05
     tot_charge  = {nelect}              
     nbnd        = {num_of_bands}
     nosym       = .true.     
@@ -567,7 +565,6 @@ wannier_epm_in = ['''
     dvscf_dir   = '{dvscf_dir}'
     
     elph        = .true.   
-    epbwrite    = .true.
     epwwrite    = .true.
     
     wannierize  = .true.         
@@ -584,10 +581,11 @@ wannier_epm_in = ['''
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
    
-    !fsthick     = 10                         
-    !degaussw    = 0.1   
-    
     asr_typ     = '{asr_type}'
+
+    fsthick     = 0.5
+    eptemp      = 0.075
+    degaussw    = 0.05 
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -620,10 +618,11 @@ ph_lw_in = ['''
     elph        = .true.          
     
     phonselfen = .true.          
-    delta_approx = .true.          
-   
-    !fsthick     = 10                      
-    !degaussw    = 0.1          
+    delta_approx = .true.     
+
+    fsthick     = 0.5
+    eptemp      = 0.075
+    degaussw    = 0.05             
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -653,14 +652,15 @@ a2F_in = ['''
     epwwrite    = .false.           
     kmaps       = .true.
 
-    elph        = .true.           
-    
-    !fsthick     = 10                     
-    !degaussw    = 0.1              
+    elph        = .true.                       
     
     phonselfen  = .true.
     delta_approx = .true.
-    a2f         = .true.           
+    a2f         = .true.
+
+    fsthick     = 0.5
+    eptemp      = 0.075
+    degaussw    = 0.05            
     
     efermi_read = .true.
     fermi_energy = 0.0
@@ -709,6 +709,10 @@ eliashberg_iso = ['''
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
 
+    fsthick     = 0.5
+    eptemp      = 0.075
+    degaussw    = 0.05 
+    
     laniso      = .false.         
     liso        = .true.          
 
@@ -1316,7 +1320,7 @@ wannier_init={projections_epw}
 #the value in eV that gets added/subtracted to the bottom/top of the inner window (i.e. negative values will broaden it).
 auto_window={auto_window}
 dE_inner=0.05
-dE_outer=0.0
+dE_outer=-1.0
 
 
 #Set the inner and outer wannierization energy windows manually (in eV). You only need to specify the values of this block...
@@ -1347,7 +1351,7 @@ outer_top={outer_top}
 #     ...Usable only as a seperate (calc_start = calc_end) execution. Only use once you are sure that everything worked.)
 
 calc_start=1
-calc_end=10
+calc_end=3
 
 #If you need a specific submission script (e.g. for wannierization) set calc_start = calc_end (e.g. = 3) and set no_sub
 #to true. You'll find the job script as job.sh in the corresponding directory.
@@ -1603,7 +1607,7 @@ cat > job.sh << EOF
 num_of_bands=\$(grep nbnd nscf.in | awk '{{print \$3}}')
 if [ \$num_of_bands -eq 0 ]
 then
-    num_of_bands=\$(grep "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
+    num_of_bands=\$(grep -m1 "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
     line=\$(grep -n nbnd nscf.in | cut -d : -f 1)
     sed -i "\${{line}}s/[^ ]*[^ ]/\${{num_of_bands}}/3" nscf.in
 fi
@@ -2172,7 +2176,7 @@ for i in range(wan_min*points, (wan_min+num_of_wan)*points):
 #find the "disturbing" bands that fall into the outer window and do not belong to the specified bands
 dist_bands = []
 for i in range(0, bands):
-    if i > wan_min and i <= wan_min + num_of_wan:
+    if i >= wan_min and i < wan_min + num_of_wan:
         continue
     else:
         for j in range(0, points):
@@ -2245,3 +2249,4 @@ with open(os.path.join(base_dir, 'epw.sh'), 'w') as txt:
     txt.writelines(epw_sh)
 
 print("done")
+
