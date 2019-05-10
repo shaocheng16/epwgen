@@ -176,6 +176,8 @@ nbndsub = 4
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
 wannier_init = ['Pb:sp3']
+#wannierization iterations (epw::num_iter)
+num_iter = 1000
 
 #automatic wannierization window determination
 auto_window = True
@@ -210,6 +212,8 @@ tempsmin = 1
 tempsmax = 4
 #temperature points between tempsmin and tempsmax for which superconducting gap is calculated (epw::nstemps)
 nstemps = 10
+#Eliashberg scf iterations (epw::nsiter)
+nsiter = 500
 #___________________________END________________________________#
 #____________________NOW_RUN_THE_SCRIPT________________________#
 
@@ -555,7 +559,7 @@ wannier_in = ['''
     wannierize  = .true.         
     nbndsub     =  {nbndsub}             
     nbndskip    =  {nbndskip}            
-    num_iter    = 1000           
+    num_iter    = {num_iter}           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -576,7 +580,7 @@ wannier_in = ['''
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, projections = projections,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, num_iter = num_iter, projections = projections,
            kpoints_wannier = kpoints_wannier, asr = asr, nk1 = nk1, nk2 = nk2, nk3 = nk3,
            nq1 = nq1, nq2 = nq2, nq3 = nq3,
            fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
@@ -593,7 +597,7 @@ wannier_epm_in = ['''
     wannierize  = .true.         
     nbndsub     =  {nbndsub}             
     nbndskip    =  {nbndskip}            
-    num_iter    = 1000           
+    num_iter    = {num_iter}           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -619,7 +623,7 @@ wannier_epm_in = ['''
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, projections = projections,
+'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, num_iter = num_iter, projections = projections,
            kpoints_wannier = kpoints_wannier, asr = asr, nk1 = nk1, nk2 = nk2, nk3 = nk3,
            nq1 = nq1, nq2 = nq2, nq3 = nq3,
            fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
@@ -718,7 +722,7 @@ eliashberg_iso = ['''
     wannierize  = .true.         
     nbndsub     =  {nbndsub}             
     nbndskip    =  {nbndskip}            
-    num_iter    = 1000           
+    num_iter    = {num_iter}           
     dis_win_min = 0.0            
     dis_win_max = 0.0
     dis_froz_min = 0.0            
@@ -746,7 +750,7 @@ eliashberg_iso = ['''
     limag       = .true.
     lpade       = .true.
     lacon       = .true.
-    nsiter      = 500             
+    nsiter      = {nsiter}             
     conv_thr_iaxis = 1.0d-3       
     conv_thr_racon = 1.0d-3
             
@@ -766,9 +770,9 @@ eliashberg_iso = ['''
 
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, projections = projections, 
+'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, num_iter = num_iter, projections = projections, 
            kpoints_wannier = kpoints_wannier, delta_approx_enable = delta_approx_enable, fsthick = fsthick, eptemp = eptemp,  degaussw = degaussw, 
-           wscut = wscut, muc = muc, tempsmin = tempsmin, tempsmax = tempsmax, nstemps = nstemps, nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3,
+           wscut = wscut, muc = muc, nsiter = nsiter, tempsmin = tempsmin, tempsmax = tempsmax, nstemps = nstemps, nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3,
            nqf1 = nqf1, nqf2 = nqf2, nqf3 = nqf3, nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
            fine_grids = generate_fine_grids(False,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
 

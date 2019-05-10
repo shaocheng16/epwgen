@@ -1,6 +1,0 @@
-
-&INPUT
-   fildyn='Pb.dyn'
-   zasr='simple'
-   flfrc='Pb.fc'           
-/
