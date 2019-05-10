@@ -6,7 +6,7 @@ base_dir = pf
 #name of job on cluster. Be mindful of regex metacharacters
 jobname = pf
 #location of the pseudopotentials where the calculations are run. Use absolute paths to directories througout.
-pps_dir = 'pps' 
+pps_dir = 'ppsdir' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 4
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
@@ -63,10 +63,10 @@ CELL_PARAMETERS angstrom
    -2.44018386041000    2.44018386041000    0.00000000000000
 '''
 #number of atoms in the unit cell (pw::nat)
-num_of_atoms = 1
+nat = 1
 
 #number of distinct atom types in unit cell (pw::ntyp)
-num_of_atom_types = 1                 
+ntyp = 1                 
 
 #atom type specification as required in pw.x input file
 #Syntax:
@@ -98,22 +98,22 @@ Pb 0.00 0.00 0.00
 
 #____________________CALCULATION_PARAMETERS____________________#
 #plane wave cut-off energy in Ry (pw::ecutwfc)
-e_cut = 30  
+ecutwfc = 30  
 #coarse k-grid size (pw::nk1 etc.)
-k_x = 8
-k_y = 8
-k_z = 8
+nk1 = 8
+nk2 = 8
+nk3 = 8
 #coarse q-grid size. The q and k-grid sizes need to be whole multiples of each other (ph::nq1 etc.)
-q_x = 4
-q_y = 4
-q_z = 4
+nq1 = 4
+nq2 = 4
+nq3 = 4
 #fine grid sizes (epw::nkf1 etc.)
-kf_x = 12
-kf_y = 12
-kf_z = 12
-qf_x = 12
-qf_y = 12
-qf_z = 12
+nkf1 = 12
+nkf2 = 12
+nkf3 = 12
+nqf1 = 12
+nqf2 = 12
+nqf3 = 12
 #for random fine grids, set random_sampling to True and specify the number of respective random points (epw::rand_k, epw::rand_q, epw::rand_nk, epw::rand_nq)
 #Note that for the Eliashberg functions no random fine grids can be used which is why you still need to specify fine grids above and 
 #the electron-phonon coefficients get calculated again
@@ -123,26 +123,26 @@ random_nqf = 40000
 
 
 #occupation type (pw::occupations)
-occupation_type = 'smearing'
+occupations = 'smearing'
 #smearing type for the case if occupations = smearing (pw::smearing)
-smearing_type = 'gaussian'
+smearing = 'gaussian'
 #gaussian spreading in Ry (pw::degauss)
-dE_gauss = '0.003674931'
+degauss = '0.003674931'
 
 #number of bands calculated. Set to 0 if this should be determined automatically (pw::nbnd)
-num_of_bands = 0    
+nbnd = 0    
 #amount of additional charge per unit cell - electrons negative, holes positive (pw::tot_charge)
-nelect = 0.0
-#accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable) (q2r::zasr)
-asr_type = 'simple'
+tot_charge = 0.0
+#accoustic sum rule type ('simple', 'crystal', 'one-dim', 'zero-dim', 'no' to disable) (ph::asr, q2r::zasr)
+asr = 'simple'
 
 #scf convergence threshold in Ry (pw::conv_thr)
-delta_scf = '1.0d-10'
+conv_thr = '1.0d-10'
 #phonon convergence threshold in Ry^2 (ph::tr2_ph)
-delta_ph = '1.0d-12'
+tr2_ph = '1.0d-12'
 
 #scf diagonalization algorithm - 'cg' or 'david' (pw::diagonalization)
-diag_algo = 'cg'
+diagonalization = 'cg'
 
 #spin-orbit coupling (pw::noncolin, pw::lspinorb)
 soc = False
@@ -150,7 +150,7 @@ soc = False
 
 #____________________HIGH_SYMMETRY_LINES_______________________#
 #define an array of high symmetry points.
-#Syntax: ['$point_label_1 $k_x1 $k_y1 $k_z1', '$point_label_2 $k_x2 $k_y2 $k_z2', etc]
+#Syntax: ['$point_label_1 $nk11 $nk21 $nk31', '$point_label_2 $nk12 $nk22 $nk32', etc]
 hisym_points = ['G 0 0 0', 
                 'X 0 0.5 0.5',
                 'L 0.5 0.5 0.5',
@@ -171,7 +171,7 @@ path_prec = 100
 
 #number of bands at and above the Fermi energy that get wannierized (epw::nbndsub). 
 #This needs to correspond to the right number implied by your specified projections.
-num_of_wan = 4
+nbndsub = 4
 #array of initial projections for Wannier functions. Check wannier90 documentation for syntax.
 #Set to 'random' if you have no initial guess
 #Syntax: ['$proj1', '$proj2', etc.] (example: ['random', 'W:l=2,mr=2,3,5'])
@@ -182,26 +182,26 @@ auto_window = True
 
 #manual wannierization window specification. You only need to specify these parameters
 #if auto_window = False or if the automatic determination doesn't work.
-#highest band that does not get wannierized,i.e. the $num_of_wan bands after band $wan_min get wannierized (epw::nbndskip)
-wan_min = 0
+#highest band that does not get wannierized,i.e. the $nbndsub bands after band $nbndskip get wannierized (epw::nbndskip)
+nbndskip = 0
 #inner wannierization window in eV (epw::dis_froz_min, epw::dis_froz_max)
-inner_bottom = 0.0
-inner_top = 0.0
+dis_froz_min = 0.0
+dis_froz_max = 0.0
 #outer wannierization window in eV (epw::dis_win_min, epw::dis_win_max)
-outer_bottom = 0.0
-outer_top = 0.0
+dis_win_min = 0.0
+dis_win_max = 0.0
 
 #___________________CRITICAL TEMPERATURE_______________________#
 #specify if double delta approximation should be used or not (epw::delta_approx)
-double_delta = False
+delta_approx = False
 #temperature in K for Fermi occupations if double delta approximation is not used (epw::eptemp)
-T_F = 0.075
+eptemp = 0.075
 #minimum temperature in K for which Eliashberg functions are solved (epw::tempsmin)
-T_min = 2
+tempsmin = 1
 #maximum temperature in K (epw::tempsmax)
-T_max = 18
-#temperature points between T_min and T_max for which superconducting gap is calculated (epw::nstemps)
-num_of_T = 10
+tempsmax = 4
+#temperature points between tempsmin and tempsmax for which superconducting gap is calculated (epw::nstemps)
+nstemps = 10
 #___________________________END________________________________#
 #____________________NOW_RUN_THE_SCRIPT________________________#
 
@@ -318,7 +318,7 @@ def check_cond_sub(_index, _scf = False):
     
 #function to generate coarse and fine grid specification for epw input
 def generate_fine_grids(_random_sampling, _random_nkf, _random_nqf,
-                   _kf_x, _kf_y, _kf_z, _qf_x, _qf_y, _qf_z, _file_q = False, _prefix = ""):
+                   _nkf1, _nkf2, _nkf3, _nqf1, _nqf2, _nqf3, _file_q = False, _prefix = ""):
     grids = ''''''
     if _random_sampling:
         grids += 'rand_k = .true.' + '\n' + '    '       
@@ -329,13 +329,13 @@ def generate_fine_grids(_random_sampling, _random_nkf, _random_nqf,
         else:
             grids +=  'filqf = \'' + str(_prefix) + '_band.kpt\'' + '\n' + '    '
     else:
-        grids += 'nkf1 = ' + str(_kf_x) + '\n' + '    '
-        grids += 'nkf2 = ' + str(_kf_y) + '\n' + '    '
-        grids += 'nkf3 = ' + str(_kf_z) + '\n' + '    '
+        grids += 'nkf1 = ' + str(_nkf1) + '\n' + '    '
+        grids += 'nkf2 = ' + str(_nkf2) + '\n' + '    '
+        grids += 'nkf3 = ' + str(_nkf3) + '\n' + '    '
         if not _file_q:
-            grids += 'nqf1 = ' + str(_qf_x) + '\n' + '    '
-            grids += 'nqf2 = ' + str(_qf_y) + '\n' + '    '
-            grids += 'nqf3 = ' + str(_qf_z) + '\n' + '    '
+            grids += 'nqf1 = ' + str(_nqf1) + '\n' + '    '
+            grids += 'nqf2 = ' + str(_nqf2) + '\n' + '    '
+            grids += 'nqf3 = ' + str(_nqf3) + '\n' + '    '
         else:
             grids +=  'filqf = \'' + str(_prefix) + '_band.kpt\'' + '\n' + '    '
     return str(grids)
@@ -348,7 +348,7 @@ def generate_modules(_modules):
     return module_commands
     
 asr_enable = '.false.'
-if asr_type == 'simple' or asr_type == 'crystal' or asr_type == 'one-dim' or asr_type == 'zero-dim':
+if asr == 'simple' or asr == 'crystal' or asr == 'one-dim' or asr == 'zero-dim':
     asr_enable = '.true.'
 
 if auto_window == True:
@@ -379,9 +379,9 @@ if soc == True:
     noncolin_enable = '.true.'
     lspinorb_enable = '.true.'
    
-double_delta_enable = '.false.'
-if double_delta == True:
-    double_delta_enable = '.true.'        
+delta_approx_enable = '.false.'
+if delta_approx == True:
+    delta_approx_enable = '.true.'        
 #_______________________________________INPUT_LISTS_______________________________________#
 #_________________________________________________________________________________________#
 scf_in = ['''
@@ -394,29 +394,29 @@ scf_in = ['''
 /
 &SYSTEM   
     ibrav       = 0      
-    nat         = {num_of_atoms}       
-    ntyp        = {num_of_atom_types}   
-    ecutwfc     = {e_cut}               
-    occupations = '{occupation_type}'
-    smearing    = '{smearing_type}'
-    degauss     = {dE_gauss}
-    tot_charge  = {nelect}   
+    nat         = {nat}       
+    ntyp        = {ntyp}   
+    ecutwfc     = {ecutwfc}               
+    occupations = '{occupations}'
+    smearing    = '{smearing}'
+    degauss     = {degauss}
+    tot_charge  = {tot_charge}   
     noncolin    = {noncolin_enable}
     lspinorb    = {lspinorb_enable}
 /
 &ELECTRONS
-    conv_thr    = {delta_scf}              
-    diagonalization = '{diag_algo}'              
+    conv_thr    = {conv_thr}              
+    diagonalization = '{diagonalization}'              
 /
 {lattice}
 {atoms}
 {atom_positions}
 K_POINTS automatic
-{k_x} {k_y} {k_z} 0 0 0
-'''.format(pf = pf, pps_dir = pps_dir, num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, 
-           occupation_type = occupation_type, smearing_type = smearing_type, dE_gauss = dE_gauss, nelect = nelect,
-           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, delta_scf = delta_scf,
-           diag_algo = diag_algo, lattice = lattice, atoms = atoms, atom_positions = atom_positions, k_x = k_x, k_y = k_y, k_z = k_z)]
+{nk1} {nk2} {nk3} 0 0 0
+'''.format(pf = pf, pps_dir = pps_dir, nat = nat, ntyp = ntyp, ecutwfc = ecutwfc, 
+           occupations = occupations, smearing = smearing, degauss = degauss, tot_charge = tot_charge,
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, conv_thr = conv_thr,
+           diagonalization = diagonalization, lattice = lattice, atoms = atoms, atom_positions = atom_positions, nk1 = nk1, nk2 = nk2, nk3 = nk3)]
 
 bands_in = ['''
 &CONTROL
@@ -428,20 +428,20 @@ bands_in = ['''
 /
 &SYSTEM    
     ibrav       = 0            
-    nat         = {num_of_atoms}        
-    ntyp        = {num_of_atom_types}   
-    ecutwfc     = {e_cut}               
-    occupations = '{occupation_type}'
-    smearing    = '{smearing_type}'
-    degauss     = {dE_gauss}
-    tot_charge  = {nelect}              
-    nbnd        = {num_of_bands}  
+    nat         = {nat}        
+    ntyp        = {ntyp}   
+    ecutwfc     = {ecutwfc}               
+    occupations = '{occupations}'
+    smearing    = '{smearing}'
+    degauss     = {degauss}
+    tot_charge  = {tot_charge}              
+    nbnd        = {nbnd}  
     noncolin    = {noncolin_enable}
     lspinorb    = {lspinorb_enable}
 /
 &ELECTRONS
-    conv_thr    = {delta_scf}               
-    diagonalization = '{diag_algo}'
+    conv_thr    = {conv_thr}               
+    diagonalization = '{diagonalization}'
 /
 {lattice}
 {atoms}
@@ -449,10 +449,10 @@ bands_in = ['''
 K_POINTS crystal_b
 {num_of_hsp}
 {kpoints}
-'''.format(pf = pf, pps_dir = pps_dir, num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut,
-           occupation_type = occupation_type, smearing_type = smearing_type, dE_gauss = dE_gauss, nelect = nelect,
-           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, num_of_bands = num_of_bands, 
-           delta_scf = delta_scf, diag_algo = diag_algo, lattice = lattice, atoms = atoms, atom_positions = atom_positions, 
+'''.format(pf = pf, pps_dir = pps_dir, nat = nat, ntyp = ntyp, ecutwfc = ecutwfc,
+           occupations = occupations, smearing = smearing, degauss = degauss, tot_charge = tot_charge,
+           noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, nbnd = nbnd, 
+           conv_thr = conv_thr, diagonalization = diagonalization, lattice = lattice, atoms = atoms, atom_positions = atom_positions, 
            num_of_hsp = num_of_hsp, kpoints = kpoints)]
 
 bands_ip_in = ['''
@@ -472,32 +472,32 @@ ph_in = ['''
     fildyn   = '{pf}.dyn'    
     fildvscf = 'dvscf'       
     ldisp    = .true.        
-    nq1      = {q_x}    
-    nq2      = {q_y} 
-    nq3      = {q_z} 
+    nq1      = {nq1}    
+    nq2      = {nq2} 
+    nq3      = {nq3} 
     asr      = {asr_enable}        
-    tr2_ph   = {delta_ph}
+    tr2_ph   = {tr2_ph}
     recover = .true.
-'''.format(pf = pf, q_x = q_x, q_y = q_y, q_z = q_z, asr_enable = asr_enable, delta_ph = delta_ph)]
+'''.format(pf = pf, nq1 = nq1, nq2 = nq2, nq3 = nq3, asr_enable = asr_enable, tr2_ph = tr2_ph)]
 
 q2r_in = ['''
 &INPUT
    fildyn='{pf}.dyn'
-   zasr='{asr_type}'
+   zasr='{asr}'
    flfrc='{pf}.fc'           
 /
-'''.format(pf = pf, asr_type = asr_type)]
+'''.format(pf = pf, asr = asr)]
 
 matdyn_in = ['''
 &INPUT
-    asr='{asr_type}'
+    asr='{asr}'
     flfrc='{pf}.fc'
     flfrq='{pf}.freq'       
     q_in_band_form=.true.
 /
 {num_of_hsp}
 {kpoints}
-'''.format(pf = pf, num_of_hsp = num_of_hsp, kpoints = kpoints, asr_type = asr_type)]
+'''.format(pf = pf, num_of_hsp = num_of_hsp, kpoints = kpoints, asr = asr)]
 
 #kpoints in nscf_in get appended when epw.sh is executed
 nscf_in = ['''
@@ -510,29 +510,29 @@ nscf_in = ['''
 /
 &SYSTEM    
     ibrav       = 0          
-    nat         = {num_of_atoms}        
-    ntyp        = {num_of_atom_types}  
-    ecutwfc     = {e_cut}               
-    occupations = '{occupation_type}'
-    smearing    = '{smearing_type}'
-    degauss     = {dE_gauss}
-    tot_charge  = {nelect}              
-    nbnd        = {num_of_bands}
+    nat         = {nat}        
+    ntyp        = {ntyp}  
+    ecutwfc     = {ecutwfc}               
+    occupations = '{occupations}'
+    smearing    = '{smearing}'
+    degauss     = {degauss}
+    tot_charge  = {tot_charge}              
+    nbnd        = {nbnd}
     nosym       = .true.     
     noncolin    = {noncolin_enable}
     lspinorb    = {lspinorb_enable}
 /
 &ELECTRONS
-    conv_thr    = {delta_scf}               
-    diagonalization = '{diag_algo}'
+    conv_thr    = {conv_thr}               
+    diagonalization = '{diagonalization}'
 /
 {lattice}
 {atoms}
 {atom_positions}
-'''.format(pf = pf, pps_dir = pps_dir, num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut,
-           occupation_type = occupation_type, smearing_type = smearing_type, dE_gauss = dE_gauss, nelect = nelect,
+'''.format(pf = pf, pps_dir = pps_dir, nat = nat, ntyp = ntyp, ecutwfc = ecutwfc,
+           occupations = occupations, smearing = smearing, degauss = degauss, tot_charge = tot_charge,
            noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, 
-           num_of_bands = num_of_bands, delta_scf = delta_scf, diag_algo = diag_algo, lattice = lattice, atoms = atoms, atom_positions = atom_positions)]
+           nbnd = nbnd, conv_thr = conv_thr, diagonalization = diagonalization, lattice = lattice, atoms = atoms, atom_positions = atom_positions)]
 
 wannier_in = ['''
 &inputepw
@@ -545,8 +545,8 @@ wannier_in = ['''
     epwwrite    = .true.         
     
     wannierize  = .true.         
-    nbndsub     =  {num_of_wan}             
-    nbndskip    =  {wan_min}            
+    nbndsub     =  {nbndsub}             
+    nbndskip    =  {nbndskip}            
     num_iter    = 1000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
@@ -558,20 +558,20 @@ wannier_in = ['''
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
         
-    nk1 = {k_x}
-    nk2 = {k_y}
-    nk3 = {k_z}
+    nk1 = {nk1}
+    nk2 = {nk2}
+    nk3 = {nk3}
     
-    nq1 = {q_x}
-    nq2 = {q_y}
-    nq3 = {q_z}
+    nq1 = {nq1}
+    nq2 = {nq2}
+    nq3 = {nq3}
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections,
-           kpoints_wannier = kpoints_wannier, asr_type = asr_type, k_x = k_x, k_y = k_y, k_z = k_z,
-           q_x = q_x, q_y = q_y, q_z = q_z,
-           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
+'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, projections = projections,
+           kpoints_wannier = kpoints_wannier, asr = asr, nk1 = nk1, nk2 = nk2, nk3 = nk3,
+           nq1 = nq1, nq2 = nq2, nq3 = nq3,
+           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
 
 wannier_epm_in = ['''
 &inputepw
@@ -583,8 +583,8 @@ wannier_epm_in = ['''
     epwwrite    = .true.
     
     wannierize  = .true.         
-    nbndsub     =  {num_of_wan}             
-    nbndskip    =  {wan_min}            
+    nbndsub     =  {nbndsub}             
+    nbndskip    =  {nbndskip}            
     num_iter    = 1000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
@@ -596,25 +596,25 @@ wannier_epm_in = ['''
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
    
-    asr_typ     = '{asr_type}'
+    asr_typ     = '{asr}'
     
     efermi_read = .true.
     fermi_energy = 0.0
     
-    nk1 = {k_x}
-    nk2 = {k_y}
-    nk3 = {k_z}
+    nk1 = {nk1}
+    nk2 = {nk2}
+    nk3 = {nk3}
     
-    nq1 = {q_x}
-    nq2 = {q_y}
-    nq3 = {q_z}
+    nq1 = {nq1}
+    nq2 = {nq2}
+    nq3 = {nq3}
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections,
-           kpoints_wannier = kpoints_wannier, asr_type = asr_type, k_x = k_x, k_y = k_y, k_z = k_z,
-           q_x = q_x, q_y = q_y, q_z = q_z,
-           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
+'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, projections = projections,
+           kpoints_wannier = kpoints_wannier, asr = asr, nk1 = nk1, nk2 = nk2, nk3 = nk3,
+           nq1 = nq1, nq2 = nq2, nq3 = nq3,
+           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
 
 ph_lw_in = ['''
 &inputepw
@@ -629,28 +629,28 @@ ph_lw_in = ['''
     elph        = .true.          
     
     phonselfen = .true.          
-    delta_approx = {double_delta_enable}
+    delta_approx = {delta_approx_enable}
 
     fsthick     = 0.5
-    eptemp      = {T_F}
+    eptemp      = {eptemp}
     degaussw    = 0.05             
     
     efermi_read = .true.
     fermi_energy = 0.0
     
-    nk1 = {k_x}
-    nk2 = {k_y}
-    nk3 = {k_z}
+    nk1 = {nk1}
+    nk2 = {nk2}
+    nk3 = {nk3}
     
-    nq1 = {q_x}
-    nq2 = {q_y}
-    nq3 = {q_z}
+    nq1 = {nq1}
+    nq2 = {nq2}
+    nq3 = {nq3}
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, double_delta_enable = double_delta_enable, T_F = T_F,
-           kf_x = kf_x, kf_y = kf_y, kf_z = kf_z, k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
-           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z,True,pf))]
+'''.format(pf = pf, dvscf_dir = dvscf_dir, delta_approx_enable = delta_approx_enable, eptemp = eptemp,
+           nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3, nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
+           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3,True,pf))]
 
 
 a2F_in = ['''
@@ -666,30 +666,30 @@ a2F_in = ['''
     elph        = .true.                       
     
     phonselfen  = .true.
-    delta_approx = {double_delta_enable}
+    delta_approx = {delta_approx_enable}
     a2f         = .true.
 
     fsthick     = 0.5
-    eptemp      = {T_F}
+    eptemp      = {eptemp}
     degaussw    = 0.05            
     
     efermi_read = .true.
     fermi_energy = 0.0
 
-    nk1 = {k_x}
-    nk2 = {k_y}
-    nk3 = {k_z}
+    nk1 = {nk1}
+    nk2 = {nk2}
+    nk3 = {nk3}
     
-    nq1 = {q_x}
-    nq2 = {q_y}
-    nq3 = {q_z}
+    nq1 = {nq1}
+    nq2 = {nq2}
+    nq3 = {nq3}
     
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, double_delta_enable = double_delta_enable, T_F = T_F,
-           kf_x = kf_x, kf_y = kf_y, kf_z = kf_z, qf_x = qf_x, qf_y = qf_y, qf_z = qf_z,
-           k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
-           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
+'''.format(pf = pf, dvscf_dir = dvscf_dir, delta_approx_enable = delta_approx_enable, eptemp = eptemp,
+           nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3, nqf1 = nqf1, nqf2 = nqf2, nqf3 = nqf3,
+           nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
+           fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
 
 eliashberg_iso = ['''
 &inputepw
@@ -708,8 +708,8 @@ eliashberg_iso = ['''
     kmaps       = .false.
     
     wannierize  = .true.         
-    nbndsub     =  {num_of_wan}             
-    nbndskip    =  {wan_min}            
+    nbndsub     =  {nbndsub}             
+    nbndskip    =  {nbndskip}            
     num_iter    = 1000           
     dis_win_min = 0.0            
     dis_win_max = 0.0
@@ -721,10 +721,10 @@ eliashberg_iso = ['''
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
 
-    delta_approx = {double_delta_enable}
+    delta_approx = {delta_approx_enable}
 
     fsthick     = 0.5
-    eptemp      = {T_F}
+    eptemp      = {eptemp}
     degaussw    = 0.05 
     
     laniso      = .false.         
@@ -737,10 +737,10 @@ eliashberg_iso = ['''
     conv_thr_iaxis = 1.0d-3       
     conv_thr_racon = 1.0d-3
             
-    tempsmin = {T_min}            
-    tempsmax = {T_max}
-    nstemp   = {num_of_T}
-    wscfut   = 0.1
+    tempsmin = {tempsmin}            
+    tempsmax = {tempsmax}
+    nstemp   = {nstemps}
+    wscut   = 0.1
 
     muc     = 0.09                 
 
@@ -749,21 +749,21 @@ eliashberg_iso = ['''
     efermi_read = .true.
     fermi_energy = 0.0
     
-    nk1 = {k_x}
-    nk2 = {k_y}
-    nk3 = {k_z}
+    nk1 = {nk1}
+    nk2 = {nk2}
+    nk3 = {nk3}
     
-    nq1 = {q_x}
-    nq2 = {q_y}
-    nq3 = {q_z}
+    nq1 = {nq1}
+    nq2 = {nq2}
+    nq3 = {nq3}
 
     {fine_grids}
 /
-'''.format(pf = pf, dvscf_dir = dvscf_dir, num_of_wan = num_of_wan, wan_min = wan_min, projections = projections, 
-           kpoints_wannier = kpoints_wannier, double_delta_enable = double_delta_enable, T_F = T_F, 
-           T_min = T_min, T_max = T_max, num_of_T = num_of_T, kf_x = kf_x, kf_y = kf_y, kf_z = kf_z,
-           qf_x = qf_x, qf_y = qf_y, qf_z = qf_z, k_x = k_x, k_y = k_y, k_z = k_z, q_x = q_x, q_y = q_y, q_z = q_z,
-           fine_grids = generate_fine_grids(False,random_nkf,random_nqf,kf_x,kf_y,kf_z,qf_x,qf_y,qf_z))]
+'''.format(pf = pf, dvscf_dir = dvscf_dir, nbndsub = nbndsub, nbndskip = nbndskip, projections = projections, 
+           kpoints_wannier = kpoints_wannier, delta_approx_enable = delta_approx_enable, eptemp = eptemp, 
+           tempsmin = tempsmin, tempsmax = tempsmax, nstemps = nstemps, nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3,
+           nqf1 = nqf1, nqf2 = nqf2, nqf3 = nqf3, nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
+           fine_grids = generate_fine_grids(False,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3))]
 
 #_________________________________________________________________________________________#
 #_________________________________________________________________________________________#
@@ -836,12 +836,12 @@ then
 cat > job.sh << EOF
 {elb_scf_sub}
 #get the number of bands from the scf.out file and put them in the bands.in file
-num_of_bands=\$(grep nbnd bands.in | awk '{{print \$3}}')
-if [ \$num_of_bands -eq 0 ]
+nbnd=\$(grep nbnd bands.in | awk '{{print \$3}}')
+if [ \$nbnd -eq 0 ]
 then
-    num_of_bands=\$(grep -m1 "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
+    nbnd=\$(grep -m1 "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
     line=\$(grep -n nbnd bands.in | cut -d : -f 1)
-    sed -i "\${{line}}s/[^ ]*[^ ]/\${{num_of_bands}}/3" bands.in
+    sed -i "\${{line}}s/[^ ]*[^ ]/\${{nbnd}}/3" bands.in
 fi
 EOF
 
@@ -1326,7 +1326,7 @@ epw_sh = ['''
 #Specify the number of bands to be wannierized, the index of the highest non-wannierized band and the initial guess...
 #...for the wannier functions. If you change this to get the windows in #3 right, you have to run #1 (with no_sub = true) again ...
 #...in order to reset the corresponding wannierization windows again.
-num_of_wan={num_of_wan}
+nbndsub={nbndsub}
 wannier_init={projections_epw}
 
 #Specify if the wannierization energy windows should be automatically determined. If you set it to false, specify the...
@@ -1341,11 +1341,11 @@ dE_outer=-1.0
 
 #Set the inner and outer wannierization energy windows manually (in eV). You only need to specify the values of this block...
 #... if you disabled auto_window or if the automatic determination didn't work.
-wan_min={wan_min}
-inner_bottom={inner_bottom}
-inner_top={inner_top}
-outer_bottom={outer_bottom}
-outer_top={outer_top}
+nbndskip={nbndskip}
+dis_froz_min={dis_froz_min}
+dis_froz_max={dis_froz_max}
+dis_win_min={dis_win_min}
+dis_win_max={dis_win_max}
 
 #Specify the starting and ending point of calculation. 
 #1: input preparation and scf calculation (set no_sub to true for just the input preparation)
@@ -1410,7 +1410,7 @@ cp $base_dir/EPM/a2F.in_orig $base_dir/EPM/a2F.in
 cp $base_dir/ISO/eliashberg_iso.in_orig $base_dir/ISO/eliashberg_iso.in
 
 #generate and append uniform k-grid for nscf.in
-python $base_dir/EPM/kmesh.py {k_x} {k_y} {k_z} 1 >> $base_dir/EPM/nscf.in
+python $base_dir/EPM/kmesh.py {nk1} {nk2} {nk3} 1 >> $base_dir/EPM/nscf.in
 
 #append irreducible q-points to epw input files where necessary
 num_of_irr_k=$(sed "2q;d" $ref_dir/PHB/*.dyn0 | awk '{{print $1}}')
@@ -1456,12 +1456,12 @@ points=$(head -n1 $ref_dir/ELB/*bands.dat | awk '{{print $5}}')
 (cat $ref_dir/ELB/*bands.dat.gnu | sed 's/[^ ]*[^ ]//1' | sed 's/\ //g' | sed '/^$/d') > $ref_dir/ELB/bands_temp
 
 #run the py script to find the bands
-windows=$(python $ref_dir/ELB/wannier_windows.py $num_of_wan $bands $points $Ef $ref_dir/ELB/bands_temp)
+windows=$(python $ref_dir/ELB/wannier_windows.py $nbndsub $bands $points $Ef $ref_dir/ELB/bands_temp)
 smallest_inner=$(echo $windows | awk '{{print $1}}')
 largest_inner=$(echo $windows | awk '{{print $2}}')
 smallest_outer=$(echo $windows | awk '{{print $3}}')
 largest_outer=$(echo $windows | awk '{{print $4}}')
-wan_min=$(echo $windows | awk '{{print $5}}')
+nbndskip=$(echo $windows | awk '{{print $5}}')
 
 #narrow the bands
 smallest_inner=$(echo "$smallest_inner + $dE_inner" | bc -l)
@@ -1469,19 +1469,19 @@ largest_inner=$(echo "$largest_inner - $dE_inner" | bc -l)
 smallest_outer=$(echo "$smallest_outer + $dE_outer" | bc -l)
 largest_outer=$(echo "$largest_outer - $dE_outer" | bc -l)
 
-inner_bottom=$smallest_inner
-inner_top=$largest_inner
-outer_bottom=$smallest_outer
-outer_top=$largest_outer
+dis_froz_min=$smallest_inner
+dis_froz_max=$largest_inner
+dis_win_min=$smallest_outer
+dis_win_max=$largest_outer
 
 fi
 #ENDIF AUTO_WINDOW
 
 #set the wannierization parameters
 line=$(grep -n nbndsub $base_dir/EPM/wannier.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$num_of_wan/3" $base_dir/EPM/wannier.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$nbndsub/3" $base_dir/EPM/wannier.in
 line=$(grep -n nbndskip $base_dir/EPM/wannier.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$wan_min/3" $base_dir/EPM/wannier.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$nbndskip/3" $base_dir/EPM/wannier.in
 
 index=0
 for p in "${{wannier_init[@]}}"
@@ -1492,9 +1492,9 @@ do
 done
 
 line=$(grep -n nbndsub $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$num_of_wan/3" $base_dir/EPM/wannier_epm.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$nbndsub/3" $base_dir/EPM/wannier_epm.in
 line=$(grep -n nbndskip $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$wan_min/3" $base_dir/EPM/wannier_epm.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$nbndskip/3" $base_dir/EPM/wannier_epm.in
 
 index=0
 for p in "${{wannier_init[@]}}"
@@ -1505,9 +1505,9 @@ do
 done
 
 line=$(grep -n nbndsub $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$num_of_wan/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$nbndsub/3" $base_dir/ISO/eliashberg_iso.in
 line=$(grep -n nbndskip $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$wan_min/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$nbndskip/3" $base_dir/ISO/eliashberg_iso.in
 
 index=0
 for p in "${{wannier_init[@]}}"
@@ -1519,31 +1519,31 @@ done
 
 
 line=$(grep -n dis_win_min $base_dir/EPM/wannier.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_bottom/3" $base_dir/EPM/wannier.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_win_min/3" $base_dir/EPM/wannier.in
 line=$(grep -n dis_win_max $base_dir/EPM/wannier.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_top/3" $base_dir/EPM/wannier.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_win_max/3" $base_dir/EPM/wannier.in
 line=$(grep -n dis_froz_min $base_dir/EPM/wannier.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_bottom/3" $base_dir/EPM/wannier.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_froz_min/3" $base_dir/EPM/wannier.in
 line=$(grep -n dis_froz_max $base_dir/EPM/wannier.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_top/3" $base_dir/EPM/wannier.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_froz_max/3" $base_dir/EPM/wannier.in
 
 line=$(grep -n dis_win_min $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_bottom/3" $base_dir/EPM/wannier_epm.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_win_min/3" $base_dir/EPM/wannier_epm.in
 line=$(grep -n dis_win_max $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_top/3" $base_dir/EPM/wannier_epm.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_win_max/3" $base_dir/EPM/wannier_epm.in
 line=$(grep -n dis_froz_min $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_bottom/3" $base_dir/EPM/wannier_epm.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_froz_min/3" $base_dir/EPM/wannier_epm.in
 line=$(grep -n dis_froz_max $base_dir/EPM/wannier_epm.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_top/3" $base_dir/EPM/wannier_epm.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_froz_max/3" $base_dir/EPM/wannier_epm.in
 
 line=$(grep -n dis_win_min $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_bottom/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_win_min/3" $base_dir/ISO/eliashberg_iso.in
 line=$(grep -n dis_win_max $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$outer_top/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_win_max/3" $base_dir/ISO/eliashberg_iso.in
 line=$(grep -n dis_froz_min $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_bottom/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_froz_min/3" $base_dir/ISO/eliashberg_iso.in
 line=$(grep -n dis_froz_max $base_dir/ISO/eliashberg_iso.in | cut -d : -f 1)
-sed -i -e "${{line}}s/[^ ]*[^ ]/$inner_top/3" $base_dir/ISO/eliashberg_iso.in
+sed -i -e "${{line}}s/[^ ]*[^ ]/$dis_froz_max/3" $base_dir/ISO/eliashberg_iso.in
 
 fi
 #ENDIF CALC_START
@@ -1620,12 +1620,12 @@ then
 cat > job.sh << EOF
 {epm_scf_sub}
 #get the number of bands from the scf.out file and put them in the nscf.in file
-num_of_bands=\$(grep nbnd nscf.in | awk '{{print \$3}}')
-if [ \$num_of_bands -eq 0 ]
+nbnd=\$(grep nbnd nscf.in | awk '{{print \$3}}')
+if [ \$nbnd -eq 0 ]
 then
-    num_of_bands=\$(grep -m1 "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
+    nbnd=\$(grep -m1 "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
     line=\$(grep -n nbnd nscf.in | cut -d : -f 1)
-    sed -i "\${{line}}s/[^ ]*[^ ]/\${{num_of_bands}}/3" nscf.in
+    sed -i "\${{line}}s/[^ ]*[^ ]/\${{nbnd}}/3" nscf.in
 fi
 EOF
 
@@ -1698,12 +1698,12 @@ then
 cat > job.sh << EOF
 {iso_scf_sub}
 #get the number of bands from the scf.out file and put them in the nscf.in file
-num_of_bands=\$(grep nbnd nscf.in | awk '{{print \$3}}')
-if [ \$num_of_bands -eq 0 ]
+nbnd=\$(grep nbnd nscf.in | awk '{{print \$3}}')
+if [ \$nbnd -eq 0 ]
 then
-    num_of_bands=\$(grep "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
+    nbnd=\$(grep "number of Kohn-Sham states" scf.out | awk '{{print \$5}}')
     line=\$(grep -n nbnd nscf.in | cut -d : -f 1)
-    sed -i "\${{line}}s/[^ ]*[^ ]/\${{num_of_bands}}/3" nscf.in
+    sed -i "\${{line}}s/[^ ]*[^ ]/\${{nbnd}}/3" nscf.in
 fi
 EOF
 
@@ -1774,9 +1774,9 @@ fi
            iso_cond_sub = check_cond_sub(9),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
-           num_of_wan = num_of_wan, wan_min = wan_min, projections_epw = projections_epw, auto_window = auto_window,
-           inner_bottom = inner_bottom, inner_top = inner_top, outer_bottom = outer_bottom, outer_top = outer_top,
-           ref_bands = ref_bands, bands_dir = bands_dir, k_x = k_x, k_y = k_y, k_z = k_z, pf = pf)]
+           nbndsub = nbndsub, nbndskip = nbndskip, projections_epw = projections_epw, auto_window = auto_window,
+           dis_froz_min = dis_froz_min, dis_froz_max = dis_froz_max, dis_win_min = dis_win_min, dis_win_max = dis_win_max,
+           ref_bands = ref_bands, bands_dir = bands_dir, nk1 = nk1, nk2 = nk2, nk3 = nk3, pf = pf)]
 
 #_________________________________________________________________________________________#
 #_________________________________________________________________________________________#
@@ -2146,14 +2146,14 @@ import sys
 
 #read command line
 parser = ArgumentParser()
-parser.add_argument('num_of_wan', type=int)
+parser.add_argument('nbndsub', type=int)
 parser.add_argument('bands', type=int)
 parser.add_argument('points', type=int)
 parser.add_argument('Ef', type=float)
 parser.add_argument('bands_file', type=str)
 args = parser.parse_args()
 
-num_of_wan = args.num_of_wan
+nbndsub = args.nbndsub
 bands = args.bands
 points = args.points
 Ef = args.Ef
@@ -2166,24 +2166,24 @@ ifs = open(bands_file, "r")
 for e in ifs:
     e_vec.append(float(e))
 
-#get the index (wan_min) of the first band that gets wannierized i.e. crosses the fermi energy (indices starting at 0)
-wan_min = 0
+#get the index (nbndskip) of the first band that gets wannierized i.e. crosses the fermi energy (indices starting at 0)
+nbndskip = 0
 for i in range(0, bands):
     for j in range(0, points):
         index = i*points + j
         if e_vec[index] >= Ef:
-            wan_min = i
+            nbndskip = i
             break
-    if not wan_min == 0:
+    if not nbndskip == 0:
         break
 
-if wan_min + num_of_wan > bands :
+if nbndskip + nbndsub > bands :
     sys.exit("You chose too many bands to wannierize")
     
 #get the outer window by finding the smallest and largest values of the specified bands
-smallest_outer = e_vec[wan_min*points]
+smallest_outer = e_vec[nbndskip*points]
 largest_outer = smallest_outer
-for i in range(wan_min*points, (wan_min+num_of_wan)*points):
+for i in range(nbndskip*points, (nbndskip+nbndsub)*points):
     if e_vec[i] < smallest_outer:
         smallest_outer = e_vec[i]
     elif e_vec[i] > largest_outer:
@@ -2192,7 +2192,7 @@ for i in range(wan_min*points, (wan_min+num_of_wan)*points):
 #find the "disturbing" bands that fall into the outer window and do not belong to the specified bands
 dist_bands = []
 for i in range(0, bands):
-    if i >= wan_min and i < wan_min + num_of_wan:
+    if i >= nbndskip and i < nbndskip + nbndsub:
         continue
     else:
         for j in range(0, points):
@@ -2221,8 +2221,8 @@ for i in range(0, len(dist_bands)):
     if smallest_local < largest_inner and  smallest_local > smallest_inner:
         largest_inner = smallest_local
 
-#band index starts at 1 in q-e making the the wan_min of this script the proper wan_min for EPW (i.e. the last unwannierized band)
-print("%12.8f    %12.8f          %12.8f          %12.8f          %d" %(smallest_inner, largest_inner, smallest_outer, largest_outer, wan_min))
+#band index starts at 1 in q-e making the the nbndskip of this script the proper nbndskip for EPW (i.e. the last unwannierized band)
+print("%12.8f    %12.8f          %12.8f          %12.8f          %d" %(smallest_inner, largest_inner, smallest_outer, largest_outer, nbndskip))
 
 ''']
 
