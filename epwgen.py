@@ -121,6 +121,14 @@ random_sampling = False
 random_nkf = 80000
 random_nqf = 40000
 
+
+#occupation type (pw::occupations)
+occupation_type = 'smearing'
+#smearing type for the case if occupations = smearing (pw::smearing)
+smearing_type = 'gaussian'
+#gaussian spreading in Ry (pw::degauss)
+dE_gauss = '0.003674931'
+
 #number of bands calculated. Set to 0 if this should be determined automatically (pw::nbnd)
 num_of_bands = 0    
 #amount of additional charge per unit cell - electrons negative, holes positive (pw::tot_charge)
@@ -389,9 +397,9 @@ scf_in = ['''
     nat         = {num_of_atoms}       
     ntyp        = {num_of_atom_types}   
     ecutwfc     = {e_cut}               
-    occupations = 'smearing',
-    smearing    = 'marzari-vanderbilt',
-    degauss     = 0.05
+    occupations = '{occupation_type}'
+    smearing    = '{smearing_type}'
+    degauss     = {dE_gauss}
     tot_charge  = {nelect}   
     noncolin    = {noncolin_enable}
     lspinorb    = {lspinorb_enable}
@@ -405,10 +413,10 @@ scf_in = ['''
 {atom_positions}
 K_POINTS automatic
 {k_x} {k_y} {k_z} 0 0 0
-'''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
-           num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
+'''.format(pf = pf, pps_dir = pps_dir, num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, 
+           occupation_type = occupation_type, smearing_type = smearing_type, dE_gauss = dE_gauss, nelect = nelect,
            noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, delta_scf = delta_scf,
-           diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions, k_x = k_x, k_y = k_y, k_z = k_z)]
+           diag_algo = diag_algo, lattice = lattice, atoms = atoms, atom_positions = atom_positions, k_x = k_x, k_y = k_y, k_z = k_z)]
 
 bands_in = ['''
 &CONTROL
@@ -423,9 +431,9 @@ bands_in = ['''
     nat         = {num_of_atoms}        
     ntyp        = {num_of_atom_types}   
     ecutwfc     = {e_cut}               
-    occupations = 'smearing',
-    smearing    = 'marzari-vanderbilt',
-    degauss     = 0.05
+    occupations = '{occupation_type}'
+    smearing    = '{smearing_type}'
+    degauss     = {dE_gauss}
     tot_charge  = {nelect}              
     nbnd        = {num_of_bands}  
     noncolin    = {noncolin_enable}
@@ -441,10 +449,10 @@ bands_in = ['''
 K_POINTS crystal_b
 {num_of_hsp}
 {kpoints}
-'''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
-           num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
+'''.format(pf = pf, pps_dir = pps_dir, num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut,
+           occupation_type = occupation_type, smearing_type = smearing_type, dE_gauss = dE_gauss, nelect = nelect,
            noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, num_of_bands = num_of_bands, 
-           delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions, 
+           delta_scf = delta_scf, diag_algo = diag_algo, lattice = lattice, atoms = atoms, atom_positions = atom_positions, 
            num_of_hsp = num_of_hsp, kpoints = kpoints)]
 
 bands_ip_in = ['''
@@ -505,9 +513,9 @@ nscf_in = ['''
     nat         = {num_of_atoms}        
     ntyp        = {num_of_atom_types}  
     ecutwfc     = {e_cut}               
-    occupations = 'smearing',
-    smearing    = 'marzari-vanderbilt',
-    degauss     = 0.05
+    occupations = '{occupation_type}'
+    smearing    = '{smearing_type}'
+    degauss     = {dE_gauss}
     tot_charge  = {nelect}              
     nbnd        = {num_of_bands}
     nosym       = .true.     
@@ -521,10 +529,10 @@ nscf_in = ['''
 {lattice}
 {atoms}
 {atom_positions}
-'''.format(pf = pf, pps_dir = pps_dir, lattice = lattice,
-           num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut, nelect = nelect,
+'''.format(pf = pf, pps_dir = pps_dir, num_of_atoms = num_of_atoms, num_of_atom_types = num_of_atom_types, e_cut = e_cut,
+           occupation_type = occupation_type, smearing_type = smearing_type, dE_gauss = dE_gauss, nelect = nelect,
            noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, 
-           num_of_bands = num_of_bands, delta_scf = delta_scf, diag_algo = diag_algo, atoms = atoms, atom_positions = atom_positions)]
+           num_of_bands = num_of_bands, delta_scf = delta_scf, diag_algo = diag_algo, lattice = lattice, atoms = atoms, atom_positions = atom_positions)]
 
 wannier_in = ['''
 &inputepw
