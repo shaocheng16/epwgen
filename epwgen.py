@@ -189,9 +189,9 @@ double_delta = False
 #temperature in K for Fermi occupations if double delta approximation is not used (epw::eptemp)
 T_F = 0.075
 #minimum temperature in K for which Eliashberg functions are solved (epw::tempsmin)
-T_min = 0.1
+T_min = 2
 #maximum temperature in K (epw::tempsmax)
-T_max = 5
+T_max = 18
 #temperature points between T_min and T_max for which superconducting gap is calculated (epw::nstemps)
 num_of_T = 10
 #___________________________END________________________________#
