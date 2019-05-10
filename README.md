@@ -5,7 +5,7 @@ This script was made in an attempt to streamline the EPW workflow. It will gener
 The script will generate a parent directory called $base_dir which itself contains the following directories:
  - ELB (directory for electron band calculations)
  - PHB (phonon bands)
- - EPM (electron phonon matrix, phonon linewidhts and Eliashberg spectral function)
+ - EPM (electron phonon matrix, phonon linewidths and Eliashberg spectral function)
  - ISO (solving the isotropic Eliashberg equations)
 
 All you need to do is to specify the calculation parameters in the main script and then run the submission scripts called
@@ -25,6 +25,4 @@ Requirements:
 - python3
 - environment modules
 
-Solving the Eliashberg equations does not work at the moment.
-
-The script contains a crude but quick and working example (including SOC) without solution of the isotropic Eliashberg functions. You only need to specify the absolute path to the pseudopotentials on your cluster and the module names.
+The script contains an example from the EPW school 2018. You only need to specify the absolute path to the pseudopotentials on your cluster and the module names.
