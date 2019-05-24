@@ -1148,7 +1148,7 @@ EOF
 #IF SPLIT_IRR
 #if irreducible representation parallelization is enabled
 elif $split_irr
-   then
+then
    cat > job.sh << EOF
    {ph_janitor_sub}
    #get the number of irreducible q-points
@@ -1198,7 +1198,7 @@ elif $split_irr
            break
        fi
    done
-   EOF
+EOF
 fi
 #ENDIF SPLIT_IRR
 #_______________________________________#
