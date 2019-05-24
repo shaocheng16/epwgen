@@ -826,9 +826,13 @@ cp $base_dir/ELB/scf.in $base_dir/PHB
 
 #__________JOB_SUBMISSION___________#
 #======================================================================================#
+#======================================================================================#
 #electron bands calculation
 cd $base_dir/ELB
+#======================================================================================#
+#======================================================================================#
 
+#======================================================================================#
 if (($calc_start < 10)) && (($calc_end == 10))
 then
    echo "Error: please only tidy up once you are sure that all calculations have finished correctly"
@@ -888,10 +892,14 @@ EOF
 {elb_ip_cond_sub}
 fi
 #______________________________________________________________________________________#
+#======================================================================================#
 
 #======================================================================================#
-#phonon calculation
+#phonon calculations
 cd $base_dir/PHB
+#======================================================================================#
+#======================================================================================#
+
 #======================================================================================#
 #scf
 if (($calc_start <= 4)) && (($calc_end >= 4))
@@ -902,21 +910,21 @@ then
 EOF
 {ph_scf_cond_sub}
 fi
+#______________________________________________________________________________________#
 
-#phonon calculations
 #======================================================================================#
 #initialize the ph calculations
 if (($calc_start <= 5)) && (($calc_end >= 5))
    then
    
    cat > job.sh << EOF
-   {ph_init_sub}
-   cp ph.in ph_start.in
-   echo "    start_irr = 0" >> ph_start.in
-   echo "    last_irr  = 0" >> ph_start.in
-   echo "    /" >> ph_start.in
-   mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
-   EOF
+{ph_init_sub}
+cp ph.in ph_start.in
+echo "    start_irr = 0" >> ph_start.in
+echo "    last_irr  = 0" >> ph_start.in
+echo "    /" >> ph_start.in
+mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
+EOF
    
    {ph_init_cond_sub}
 fi
@@ -937,8 +945,8 @@ then
       echo "/" >> ph_all.in
       
       cat > job.sh << EOF
-      {ph_all_sub}
-      EOF
+{ph_all_sub}
+EOF
    #ENDIF NOSPLIT
    #_______________________________________#
     
@@ -1313,7 +1321,7 @@ do
          cat dvscf1_old dvscf1_temp > dvscf1_new
          mv dvscf1_new dvscf1_old
          
-         else
+      else
          size_new=\$(ls -l q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf1 | awk '{{print \$5}}')
          _count=\$((size_new - size_old))
          _skip=\$((size_new - _count))
@@ -1579,32 +1587,32 @@ cp $base_dir/EPM/nscf.in $base_dir/ISO
 if $auto_window
 then
 
-#get the number of bands
-bands=$(head -n1 $ref_dir/ELB/*bands.dat | awk '{{print $3}}' | sed "s/,//")
-#get the number of k-points in the total band path
-points=$(head -n1 $ref_dir/ELB/*bands.dat | awk '{{print $5}}')
-
-#make a temporary file that stores the band energies sequentially per band
-(cat $ref_dir/ELB/*bands.dat.gnu | sed 's/[^ ]*[^ ]//1' | sed 's/\ //g' | sed '/^$/d') > $ref_dir/ELB/bands_temp
-
-#run the py script to find the bands
-windows=$(python $ref_dir/ELB/wannier_windows.py $nbndsub $bands $points $Ef $ref_dir/ELB/bands_temp)
-smallest_inner=$(echo $windows | awk '{{print $1}}')
-largest_inner=$(echo $windows | awk '{{print $2}}')
-smallest_outer=$(echo $windows | awk '{{print $3}}')
-largest_outer=$(echo $windows | awk '{{print $4}}')
-nbndskip=$(echo $windows | awk '{{print $5}}')
-
-#narrow the bands
-smallest_inner=$(echo "$smallest_inner + $dE_inner" | bc -l)
-largest_inner=$(echo "$largest_inner - $dE_inner" | bc -l)
-smallest_outer=$(echo "$smallest_outer + $dE_outer" | bc -l)
-largest_outer=$(echo "$largest_outer - $dE_outer" | bc -l)
-
-dis_froz_min=$smallest_inner
-dis_froz_max=$largest_inner
-dis_win_min=$smallest_outer
-dis_win_max=$largest_outer
+   #get the number of bands
+   bands=$(head -n1 $ref_dir/ELB/*bands.dat | awk '{{print $3}}' | sed "s/,//")
+   #get the number of k-points in the total band path
+   points=$(head -n1 $ref_dir/ELB/*bands.dat | awk '{{print $5}}')
+   
+   #make a temporary file that stores the band energies sequentially per band
+   (cat $ref_dir/ELB/*bands.dat.gnu | sed 's/[^ ]*[^ ]//1' | sed 's/\ //g' | sed '/^$/d') > $ref_dir/ELB/bands_temp
+   
+   #run the py script to find the bands
+   windows=$(python $ref_dir/ELB/wannier_windows.py $nbndsub $bands $points $Ef $ref_dir/ELB/bands_temp)
+   smallest_inner=$(echo $windows | awk '{{print $1}}')
+   largest_inner=$(echo $windows | awk '{{print $2}}')
+   smallest_outer=$(echo $windows | awk '{{print $3}}')
+   largest_outer=$(echo $windows | awk '{{print $4}}')
+   nbndskip=$(echo $windows | awk '{{print $5}}')
+   
+   #narrow the bands
+   smallest_inner=$(echo "$smallest_inner + $dE_inner" | bc -l)
+   largest_inner=$(echo "$largest_inner - $dE_inner" | bc -l)
+   smallest_outer=$(echo "$smallest_outer + $dE_outer" | bc -l)
+   largest_outer=$(echo "$largest_outer - $dE_outer" | bc -l)
+   
+   dis_froz_min=$smallest_inner
+   dis_froz_max=$largest_inner
+   dis_win_min=$smallest_outer
+   dis_win_max=$largest_outer
 
 fi
 #ENDIF AUTO_WINDOW
@@ -1682,6 +1690,8 @@ fi
 
 
 #__________JOB_SUBMISSION___________#
+#======================================================================================#
+#gnuplot wannierized bands
 if ( (($calc_start == 11)) && ((! $calc_end == 11)) ) || ( ((! $calc_start == 11)) && (($calc_end == 11)) )
 then
 echo "Error: plotting the Bloch and Wannier bands is only possible as a separate execution"
@@ -1731,25 +1741,36 @@ plot blochf u (\$1/$last_QE):2 w l ls 1 t "Bloch", \\
 EOF
 gnuplot -p "$base_dir/ELB/check_bands.gnu" 
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 if ( (($calc_start == 12)) && ((! $calc_end == 12)) ) || ( ((! $calc_start == 12)) && (($calc_end == 12)) )
 then
-echo "Error: please only tidy up once you are sure that all calculations have finished correctly"
-exit
+   echo "Error: please only tidy up once you are sure that all calculations have finished correctly"
+   exit
 fi
-
+#______________________________________________________________________________________#
+#======================================================================================#
 if (($calc_start > $calc_end))
 then
-echo "Error: calculation order makes no sense"
-exit
+   echo "Error: calculation order makes no sense"
+   exit
 fi
+#______________________________________________________________________________________#
+
+#======================================================================================#
+#======================================================================================#
 #EPM calculations
 cd $base_dir/EPM
+#======================================================================================#
+#======================================================================================#
+
+#======================================================================================#
 
 #scf
 if (($calc_start <= 1)) && (($calc_end >= 1))
 then
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {epm_scf_sub}
 #get the number of bands from the scf.out file and put them in the nscf.in file
 nbnd=\$(grep nbnd nscf.in | awk '{{print \$3}}')
@@ -1761,73 +1782,90 @@ then
 fi
 EOF
 
-{epm_scf_cond_sub}
+   {epm_scf_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #nscf
 if (($calc_start <= 2)) && (($calc_end >= 2))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {epm_nscf_sub}
 EOF
 
-{epm_nscf_cond_sub}
+   {epm_nscf_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #wannierization
 if (($calc_start <= 3)) && (($calc_end >= 3))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {wannier_sub}
 EOF
 
 {wannier_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #electron phonon matrix
 if (($calc_start <= 4)) && (($calc_end >= 4))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {epm_sub}
 EOF
 
-{epm_cond_sub}
+   {epm_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #phonon linewidth
 if (($calc_start <= 5)) && (($calc_end >= 5))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {ph_lw_sub}
 mv linewidth.phself linewidth.phself_bands
 EOF
 
-{ph_lw_cond_sub}
+   {ph_lw_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #a2F
 if (($calc_start <= 6)) && (($calc_end >= 6))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {a2F_sub}
 mv linewidth.phself linewidth.phself_grid
 EOF
 
-{a2F_cond_sub}
+   {a2F_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
+#======================================================================================#
 #ISO calculations
 cd $base_dir/ISO
+#======================================================================================#
+#======================================================================================#
+
+#======================================================================================#
 #scf
 if (($calc_start <= 7)) && (($calc_end >= 7))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {iso_scf_sub}
 #get the number of bands from the scf.out file and put them in the nscf.in file
 nbnd=\$(grep nbnd nscf.in | awk '{{print \$3}}')
@@ -1839,35 +1877,41 @@ then
 fi
 EOF
 
-{iso_scf_cond_sub}
+   {iso_scf_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #nscf
 if (($calc_start <= 8)) && (($calc_end >= 8))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {iso_nscf_sub}
 EOF
 
-{iso_nscf_cond_sub}
+   {iso_nscf_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #isotropic eliashberg
 if (($calc_start <= 9)) && (($calc_end >= 9))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {iso_sub}
 EOF
 
-{iso_cond_sub}
+   {iso_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #tidying up
 if (($calc_start == 12)) && (($calc_end == 12))
 then
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {tidy_sub}
 #phonon directory
 cd $base_dir/PHB
@@ -1882,9 +1926,9 @@ rm *.epb* *wfc* *.xml *.wout *.win *.ukk *.nnkp *.kmap *.epmatwe1 *.chk decay* *
 EOF
 if ! $no_sub
 then
-bsub<job.sh
+   bsub<job.sh
 fi
-
+#______________________________________________________________________________________#
 fi
 '''.format(epm_scf_sub = make_job_sub(jobname + '_epm_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            epm_scf_cond_sub = check_cond_sub(1, True),
