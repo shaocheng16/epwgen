@@ -825,26 +825,29 @@ base_dir=$(pwd)
 cp $base_dir/ELB/scf.in $base_dir/PHB
 
 #__________JOB_SUBMISSION___________#
+#======================================================================================#
 #electron bands calculation
 cd $base_dir/ELB
 
 if (($calc_start < 10)) && (($calc_end == 10))
 then
-echo "Error: please only tidy up once you are sure that all calculations have finished correctly"
-exit
+   echo "Error: please only tidy up once you are sure that all calculations have finished correctly"
+   exit
 fi
 
 if (($calc_start > $calc_end))
 then
-echo "Error: calculation order makes no sense"
-exit
+   echo "Error: calculation order makes no sense"
+   exit
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #scf
 if (($calc_start <= 1)) && (($calc_end >= 1))
 then
-
-cat > job.sh << EOF
+   
+   cat > job.sh << EOF
 {elb_scf_sub}
 #get the number of bands from the scf.out file and put them in the bands.in file
 nbnd=\$(grep nbnd bands.in | awk '{{print \$3}}')
@@ -858,139 +861,138 @@ EOF
 
 {elb_scf_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #bands
 if (($calc_start <= 2)) && (($calc_end >= 2))
 then
-
-cat > job.sh << EOF
+   
+   cat > job.sh << EOF
 {elb_sub}
 EOF
 
 {elb_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #bands_ip
 if (($calc_start <= 3)) && (($calc_end >= 3))
 then
-
-cat > job.sh << EOF
+   
+   cat > job.sh << EOF
 {elb_ip_sub}
 EOF
 
 {elb_ip_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #phonon calculation
 cd $base_dir/PHB
-
+#======================================================================================#
 #scf
 if (($calc_start <= 4)) && (($calc_end >= 4))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {ph_scf_sub}
 EOF
-
 {ph_scf_cond_sub}
 fi
 
 #phonon calculations
+#======================================================================================#
 #initialize the ph calculations
 if (($calc_start <= 5)) && (($calc_end >= 5))
-then
-
-cat > job.sh << EOF
-{ph_init_sub}
-cp ph.in ph_start.in
-echo "    start_irr = 0" >> ph_start.in
-echo "    last_irr  = 0" >> ph_start.in
-echo "    /" >> ph_start.in
-mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
-EOF
-
-{ph_init_cond_sub}
+   then
+   
+   cat > job.sh << EOF
+   {ph_init_sub}
+   cp ph.in ph_start.in
+   echo "    start_irr = 0" >> ph_start.in
+   echo "    last_irr  = 0" >> ph_start.in
+   echo "    /" >> ph_start.in
+   mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
+   EOF
+   
+   {ph_init_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #set up a manager that splits the phonon calculation
 #IF CALC_START
 if (($calc_start <= 6)) && (($calc_end >= 6))
 then
 
-#if no parallelization is wanted start the phonon calculation normally
-#IF NOSPLIT
-if ! $split_q
-then
-cp ph.in ph_all.in
-echo "/" >> ph_all.in
-
-cat > job.sh << EOF
-{ph_all_sub}
-EOF
-#ENDIF NOSPLIT
-
-#IF SPLIT_Q
-#if irreducible q-point parallelization is enabled
-elif $split_q && ! $split_irr
-then
-
-cat > job.sh << EOF
+   #=======================================#
+   #if no parallelization is wanted start the phonon calculation normally
+   #IF NOSPLIT
+   if ! $split_q
+   then
+      cp ph.in ph_all.in
+      echo "/" >> ph_all.in
+      
+      cat > job.sh << EOF
+      {ph_all_sub}
+      EOF
+   #ENDIF NOSPLIT
+   #_______________________________________#
+    
+   #=======================================#
+   #IF SPLIT_Q
+   #if irreducible q-point parallelization is enabled
+   elif $split_q && ! $split_irr
+   then
+   
+      cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
 irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 
 #run a phonon calculation for every irreducible q-point
 for ((q=1; q <= \$irr_qs; q++))
-do
 
-#make directories for the irreducible q-point and copy necessary stuff there
-if [ ! -d  q\${{q}}/_ph0/{pf}.phsave ]
-then
-mkdir -p q\${{q}}/_ph0/{pf}.phsave
-cp -r {pf}.* q\${{q}}
-cp -r _ph0/{pf}.phsave/* q\${{q}}/_ph0/{pf}.phsave
-fi
-
-cd q\${{q}}
-#prepare the input file
-cp ../ph.in ph_q\${{q}}.in
-echo "    start_q = \$q" >> ph_q\${{q}}.in
-echo "    last_q = \$q" >> ph_q\${{q}}.in
-echo "/" >>  ph_q\${{q}}.in
-
-#make the job file
-cat > job_temp.sh << EOF1
+   #make directories for the irreducible q-point and copy necessary stuff there
+   if [ ! -d  q\${{q}}/_ph0/{pf}.phsave ]
+   then
+      mkdir -p q\${{q}}/_ph0/{pf}.phsave
+      cp -r {pf}.* q\${{q}}
+      cp -r _ph0/{pf}.phsave/* q\${{q}}/_ph0/{pf}.phsave
+   fi
+   
+   cd q\${{q}}
+   #prepare the input file
+   cp ../ph.in ph_q\${{q}}.in
+   echo "    start_q = \$q" >> ph_q\${{q}}.in
+   echo "    last_q = \$q" >> ph_q\${{q}}.in
+   echo "/" >>  ph_q\${{q}}.in
+   
+   #make the job file
+   cat > job_temp.sh << EOF1
 {ph_q_sub}
-\#delete the large wave functions in the q-directory immediately after a calculation is done
-if [ -f ph_q\${{q}}.out ] && [ \${{q}} -ne 1 ]
-then
-status=\\\\\$(tail -n2 ph_q\${{q}}.out | head -n1 | awk '{{print \\\\\$2}}')
-if [ "\\\\\$status" == "DONE." ]
-then 
-rm _ph0/{pf}.q_\${{q}}/*.wfc*
-rm {pf}.save/wfc**.dat
-rm *.wfc*
-fi
-fi
 EOF1
-
-#remove escapes
-sed -i 's/\\\\\#/#/g' job_temp.sh
-
-#in the case of a restart only submit the job if it's not finished yet
-if [ -f ph_q\${{q}}.out ]
-then
-status=\$(tail -n2 ph_q\${{q}}.out | head -n1 | awk '{{print \$2}}')
-if [ ! "\$status" == "DONE." ]
-then
-#LSF
-bsub<job_temp.sh
-fi
-else
-#LSF
-bsub<job_temp.sh
-fi
-cd ..
+         
+   #remove escapes
+   sed -i 's/\\\\\#/#/g' job_temp.sh
+   
+   #in the case of a restart only submit the job if it's not finished yet
+   if [ -f ph_q\${{q}}.out ]
+   then
+      status=\$(tail -n2 ph_q\${{q}}.out | head -n1 | awk '{{print \$2}}')
+      if [ ! "\$status" == "DONE." ]
+      then
+         #LSF
+         bsub<job_temp.sh
+      fi
+   else
+      #LSF
+      bsub<job_temp.sh
+   fi
+   cd ..
 done
 
 #update the conditions once all jobs are submitted
@@ -999,13 +1001,16 @@ collect_id=\$(bjobs -J {jobname}_ph_collect | tail -n1 | awk '{{print \$1}}')
 bmod -w "{jobname}_ph_q*" \$collect_id
 
 EOF
-#ENDIF SPLIT_Q
-
-#IF SPLIT_IRR
-#if irreducible representation parallelization is enabled
-elif $split_irr
-then
-cat > job.sh << EOF
+   #ENDIF SPLIT_Q
+   
+   #_______________________________________#
+   
+   #=======================================#
+    #IF SPLIT_IRR
+    #if irreducible representation parallelization is enabled
+    elif $split_irr
+    then
+      cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
 irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
@@ -1022,50 +1027,51 @@ done
 #run a phonon calculation for every irreducible representation of every irreducible q-point 
 for ((q=1; q <= irr_qs; q++))
 do
-i=\$((q-1))
-for ((r=1; r <= irreps[i]; r++))
-do
+   i=\$((q-1))
+   for ((r=1; r <= irreps[i]; r++))
+   do
 
-#make directories for the irreducible representation and copy necessary stuff there
-if [ ! -d  q\${{q}}_r\${{r}}/_ph0/{pf}.phsave ]
-then
-mkdir -p q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
-ln -s $PWD/{pf}.save q\${{q}}_r\${{r}}/{pf}.save
-cp -r _ph0/{pf}.phsave/* q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
-fi
+   #make directories for the irreducible representation and copy necessary stuff there
+   if [ ! -d  q\${{q}}_r\${{r}}/_ph0/{pf}.phsave ]
+   then
+      mkdir -p q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
+      ln -s $PWD/{pf}.save q\${{q}}_r\${{r}}/{pf}.save
+      cp -r _ph0/{pf}.phsave/* q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
+   fi
+   
+   cd q\${{q}}_r\${{r}}
+   #prepare the input file
+   cp ../ph.in ph_q\${{q}}_r\${{r}}.in
 
-cd q\${{q}}_r\${{r}}
-#prepare the input file
-cp ../ph.in ph_q\${{q}}_r\${{r}}.in
-
-echo "    start_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
-echo "    last_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
-echo "    start_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
-echo "    last_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
-echo "    /" >>  ph_q\${{q}}_r\${{r}}.in
-
-#make the job file
-cat > job_temp.sh << EOF1
+   echo "    start_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
+   echo "    last_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
+   echo "    start_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
+   echo "    last_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
+   echo "    /" >>  ph_q\${{q}}_r\${{r}}.in
+   
+   #make the job file
+   cat > job_temp.sh << EOF1
 {ph_q_r_sub}
 EOF1
-#remove escapes
-sed -i 's/\\\\\#/#/g' job_temp.sh
 
-#in the case of a restart only submit the job if it's not finished yet
-if [ -f ph_q\${{q}}_r\${{r}}.out ]
-then
-status=\$(tail -n2 ph_q\${{q}}_r\${{r}}.out | head -n1 | awk '{{print \$2}}')
-if [ ! "\$status" == "DONE." ]
-then
-#LSF
-bsub<job_temp.sh
-fi
-else
-#LSF
-bsub<job_temp.sh
-fi
-cd ..
-done
+   #remove escapes
+   sed -i 's/\\\\\#/#/g' job_temp.sh
+   
+   #in the case of a restart only submit the job if it's not finished yet
+   if [ -f ph_q\${{q}}_r\${{r}}.out ]
+   then
+      status=\$(tail -n2 ph_q\${{q}}_r\${{r}}.out | head -n1 | awk '{{print \$2}}')
+      if [ ! "\$status" == "DONE." ]
+      then
+         #LSF
+         bsub<job_temp.sh
+      fi
+   else
+      #LSF
+      bsub<job_temp.sh
+   fi
+   cd ..
+   done
 done
 
 #update the conditions once all jobs are submitted
@@ -1074,59 +1080,63 @@ collect_id=\$(bjobs -J {jobname}_ph_collect | tail -n1 | awk '{{print \$1}}')
 bmod -w "{jobname}_ph_q*" \$collect_id
 
 EOF
-fi
-#ENDIF SPLIT_IRR
+    fi
+    #ENDIF SPLIT_IRR
+    #_______________________________________#
 
 {ph_manager_cond_sub}
 
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #janitor 
 
+#=======================================#
 #IF SPLIT_Q
 #if irreducible q-point parallelization is enabled
 if $split_q && ! $split_irr
 then
    cat > job.sh << EOF
-   {ph_janitor_sub}
-   #get the number of irreducible q-points
-   irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
-   
-   while true
-   do
-       #stop if no more wfc are found ...
-       wfc_found=false
-       #..and all calculations have started
-       all_ph_started=true
-       
-       for ((q=1; q <= irr_qs; q++))
-       do
-           if [ -f q\${{q}}/ph_q\${{q}}.out ]
-           then        
-               wfc_files=\$(find q\${{q}} -name "{pf}.wfc*")
-               if ! [ "\$wfc_files" = "" ]
-               then
-                   wfc_found=true
-               fi                
-               scf_start=\$(grep "iter #   1" q\${{q}}/ph_q\${{q}}.out)
-               if ! [ "\$scf_start" = "" ]
-               then
-                   find q\${{q}} -name "{pf}.wfc*" -exec rm {{}} \;
-               fi          
-            else
-                all_ph_started=false         
-            fi             
+{ph_janitor_sub}
+#get the number of irreducible q-points
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 
-       done
-       
-       if ! [ \$wfc_found = true ] && [ \$all_ph_started = true ]
-       then
-           break
-       fi
-   done
-   EOF
+while true
+do
+    #stop if no more wfc are found ...
+    wfc_found=false
+    #..and all calculations have started
+    all_ph_started=true
+    
+    for ((q=1; q <= irr_qs; q++))
+    do
+        if [ -f q\${{q}}/ph_q\${{q}}.out ]
+        then        
+            wfc_files=\$(find q\${{q}} -name "{pf}.wfc*")
+            if ! [ "\$wfc_files" = "" ]
+            then
+                wfc_found=true
+            fi                
+            scf_start=\$(grep "iter #   1" q\${{q}}/ph_q\${{q}}.out)
+            if ! [ "\$scf_start" = "" ]
+            then
+                find q\${{q}} -name "{pf}.wfc*" -exec rm {{}} \;
+            fi          
+         else
+             all_ph_started=false         
+         fi           
+    done
+    
+    if ! [ \$wfc_found = true ] && [ \$all_ph_started = true ]
+    then
+        break
+    fi
+done
+EOF
 #ENDIF SPLIT_Q 
+#_______________________________________#
 
-
+#=======================================#
 #IF SPLIT_IRR
 #if irreducible representation parallelization is enabled
 elif $split_irr
@@ -1183,61 +1193,65 @@ elif $split_irr
    EOF
 fi
 #ENDIF SPLIT_IRR
+#_______________________________________#
 {ph_janitor_cond_sub}
 fi
 #ENDIF CALC_START
+#______________________________________________________________________________________#
 
-
+#======================================================================================#
 #collect all results
 #IF CALC_START
 if (($calc_start <= 7)) && (($calc_end >= 7))
 then
-
-#do nothing if the calculations are not split 
-#IF NOSPLIT
-if ! $split_q
-then
-cat > job.sh << EOF
+   #=======================================#
+   #do nothing if the calculations are not split 
+   #IF NOSPLIT
+   if ! $split_q
+   then
+   cat > job.sh << EOF
 {ph_collect_sub}
 echo "nothing to collect"
 EOF
-#LSF
-line=$(grep -n "#BSUB -w" job.sh | cut -d : -f 1)
-sed -i "${{line}}s/manager/all/1" job.sh
-#ENDIF NOSPLIT
-
-#IF SPLIT_Q
-elif $split_q && ! $split_irr
-then
-cat > job.sh << EOF
+   #LSF
+   line=$(grep -n "#BSUB -w" job.sh | cut -d : -f 1)
+   sed -i "${{line}}s/manager/all/1" job.sh
+   #ENDIF NOSPLIT
+   #_______________________________________#
+   
+   #=======================================#
+   #IF SPLIT_Q
+   elif $split_q && ! $split_irr
+   then
+   cat > job.sh << EOF
 {ph_collect_sub}
 
 #make sure that all phonon calculations have finished without problems
 for ph in \$(ls ph_q*/ph_q*.out)
 do
-status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
-if [ ! "\$status" == "DONE." ]
-then
-echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
-exit
-fi
+   status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
+   if [ ! "\$status" == "DONE." ]
+   then
+      echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
+      exit
+   fi
 done
 
 #collect files
 irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 for ((q=1; q<=irr_qs;q++))
-do
-
-#copy the dynmats
-cp q\${{q}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
-
-#copy directory containing dvscf
-if ((q==1))
-then
-cp q1/_ph0/{pf}.dvscf1 _ph0
-else
-cp -r q\${{q}}/_ph0/{pf}.q_\${{q}} _ph0
-fi
+   do
+   
+   #copy the dynmats
+   cp q\${{q}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
+   
+   #copy directory containing dvscf
+   if ((q==1))
+   then
+      cp q1/_ph0/{pf}.dvscf1 _ph0
+   else
+      cp -r q\${{q}}/_ph0/{pf}.q_\${{q}} _ph0
+   fi
 done
 
 #prepare input file and execute
@@ -1245,23 +1259,25 @@ cp ph.in ph_end.in
 echo "    /" >> ph_end.in
 mpirun ph.x -npool 1 -in ph_end.in > ph_end.out
 EOF
-#ENDIF SPLIT_Q
+   #ENDIF SPLIT_Q
+   #_______________________________________#
 
-#IF SPLIT_IRR
-elif $split_irr
-then
-cat > job.sh << EOF
+   #=======================================#
+   #IF SPLIT_IRR
+   elif $split_irr
+   then
+   cat > job.sh << EOF
 {ph_collect_sub}
 
 #make sure that all phonon calculations have finished without problems
 for ph in \$(ls q*_r*/ph_q*_r*.out)
 do
-status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
-if [ ! "\$status" == "DONE." ]
-then
-echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
-exit
-fi
+   status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
+   if [ ! "\$status" == "DONE." ]
+   then
+      echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
+      exit
+   fi
 done
 
 #collect files
@@ -1276,49 +1292,49 @@ done
 
 for ((q=1; q <= irr_qs; q++))
 do
-i=\$((q-1))
-size_new=0
-size_old=0
-touch dvscf1_old
-for ((r=1; r <= irreps[i]; r++))
-do
-
-#copy the dynmats
-cp q\${{q}}_r\${{r}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
-
-#combine the dvscf files bytewise
-if ((q==1))
-then
-size_new=\$(ls -l q1_r\${{r}}/_ph0/{pf}.dvscf1 | awk '{{print \$5}}')
-_count=\$((size_new - size_old))
-_skip=\$((size_new - _count))
-size_old=\$size_new
-dd if=q1_r\${{r}}/_ph0/{pf}.dvscf1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
-cat dvscf1_old dvscf1_temp > dvscf1_new
-mv dvscf1_new dvscf1_old
-
-else
-size_new=\$(ls -l q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf1 | awk '{{print \$5}}')
-_count=\$((size_new - size_old))
-_skip=\$((size_new - _count))
-size_old=\$size_new
-dd if=q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
-cat dvscf1_old dvscf1_temp > dvscf1_new
-mv dvscf1_new dvscf1_old
-fi
-done
-
-#move the combined dvscf files to the right location
-if ((q==1))
-then
-mv dvscf1_old _ph0/{pf}.dvscf1
-else
-if [ ! -d _ph0/{pf}.q_\${{q}} ]
-then
-mkdir _ph0/{pf}.q_\${{q}}
-fi
-mv dvscf1_old _ph0/{pf}.q_\${{q}}/{pf}.dvscf1
-fi
+   i=\$((q-1))
+   size_new=0
+   size_old=0
+   touch dvscf1_old
+   for ((r=1; r <= irreps[i]; r++))
+   do
+   
+      #copy the dynmats
+      cp q\${{q}}_r\${{r}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
+      
+      #combine the dvscf files bytewise
+      if ((q==1))
+      then
+         size_new=\$(ls -l q1_r\${{r}}/_ph0/{pf}.dvscf1 | awk '{{print \$5}}')
+         _count=\$((size_new - size_old))
+         _skip=\$((size_new - _count))
+         size_old=\$size_new
+         dd if=q1_r\${{r}}/_ph0/{pf}.dvscf1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
+         cat dvscf1_old dvscf1_temp > dvscf1_new
+         mv dvscf1_new dvscf1_old
+         
+         else
+         size_new=\$(ls -l q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf1 | awk '{{print \$5}}')
+         _count=\$((size_new - size_old))
+         _skip=\$((size_new - _count))
+         size_old=\$size_new
+         dd if=q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
+         cat dvscf1_old dvscf1_temp > dvscf1_new
+         mv dvscf1_new dvscf1_old
+      fi
+   done
+   
+   #move the combined dvscf files to the right location
+   if ((q==1))
+   then
+      mv dvscf1_old _ph0/{pf}.dvscf1
+   else
+      if [ ! -d _ph0/{pf}.q_\${{q}} ]
+      then
+         mkdir _ph0/{pf}.q_\${{q}}
+      fi
+   mv dvscf1_old _ph0/{pf}.q_\${{q}}/{pf}.dvscf1
+   fi
 done
 
 #prepare input file and execute
@@ -1327,18 +1343,21 @@ echo "    /" >> ph_end.in
 mpirun ph.x -npool 1 -in ph_end.in > ph_end.out
 
 EOF
-fi
-#ENDIF SPLIT_IRR
+   #ENDIF SPLIT_IRR
+   #_______________________________________#
+   fi
+  
 
 {ph_collect_cond_sub}
 fi
 #ENDIF CALC_START
 
+#======================================================================================#
 #q2r
 if (($calc_start <= 8)) && (($calc_end >= 8))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {q2r_sub}
 if [ -f {pf}.dyn1.xml ]
 then
@@ -1350,12 +1369,14 @@ EOF
 
 {q2r_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #matdyn
 if (($calc_start <= 9)) && (($calc_end >= 9))
 then
 
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {matdyn_sub}
 if [ -f {pf}.dyn1.xml ]
 then
@@ -1366,11 +1387,13 @@ EOF
 
 {matdyn_cond_sub}
 fi
+#______________________________________________________________________________________#
 
+#======================================================================================#
 #tidying up
 if (($calc_start == 10)) && (($calc_end == 10))
 then
-cat > job.sh << EOF
+   cat > job.sh << EOF
 {tidy_sub}
 #phonon directory
 cd $base_dir/PHB
@@ -1392,11 +1415,14 @@ rm job*
 rm *wfc*
 EOF
 
-if ! $no_sub
-then
-bsub<job.sh
+   if ! $no_sub
+   then
+      bsub<job.sh
+   fi
 fi
-fi
+#______________________________________________________________________________________#
+
+
 '''.format(elb_scf_sub = make_job_sub(jobname + '_elb_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            elb_scf_cond_sub = check_cond_sub(1, True),
            elb_sub = make_job_sub(jobname + '_elb',num_of_cpu_scf,ram,scf_t,'bands.in','bands.out','pw.x',jobname + '_elb_scf'),
