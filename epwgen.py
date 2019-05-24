@@ -1007,6 +1007,7 @@ done
 collect_id=\$(bjobs -J {jobname}_ph_collect | tail -n1 | awk '{{print \$1}}')
 #LSF
 bmod -w "{jobname}_ph_q*" \$collect_id
+sleep 10
 
 EOF
    #ENDIF SPLIT_Q
@@ -1086,6 +1087,7 @@ done
 collect_id=\$(bjobs -J {jobname}_ph_collect | tail -n1 | awk '{{print \$1}}')
 #LSF
 bmod -w "{jobname}_ph_q*" \$collect_id
+sleep 10
 
 EOF
     fi
@@ -1116,7 +1118,7 @@ do
     #..and all calculations have started
     all_ph_started=true
     
-    for ((q=1; q <= irr_qs; q++))
+    for ((q=2; q <= irr_qs; q++))
     do
         if [ -f q\${{q}}/ph_q\${{q}}.out ]
         then        
@@ -1170,7 +1172,7 @@ then
        #..and all calculations have started
        all_ph_started=true
        
-       for ((q=1; q <= irr_qs; q++))
+       for ((q=2; q <= irr_qs; q++))
        do
            i=\$((q-1))
            for ((r=1; r <= irreps[i]; r++))
