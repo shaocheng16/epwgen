@@ -1079,57 +1079,110 @@ fi
 
 {ph_manager_cond_sub}
 
-#janitor    
-cat > job.sh << EOF
-{ph_janitor_sub}
-#get the number of irreducible q-points
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 
-#get the number of irreducible representations of each q-point and save them in an array
-declare -a irreps
-for ((i=0; i < irr_qs; i++))
-do
-    q=\$((i+1))
-    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
-    irreps[\$i]=\$irreps_el
-done
+#janitor 
 
-while true
-do
-    #stop if no more wfc are found ...
-    wfc_found=false
-    #..and all calculations have started
-    all_ph_started=true
-    
-    for ((q=1; q <= irr_qs; q++))
-    do
-        i=\$((q-1))
-        for ((r=1; r <= irreps[i]; r++))
-        do
-            if [ -f q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out ]
-            then        
-                wfc_files=\$(find q\${{q}}_r\${{r}} -name "{pf}.wfc*")
-                if ! [ "\$wfc_files" = "" ]
-                then
-                    wfc_found=true
-                fi                
-                scf_start=\$(grep "iter #   1" q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out)
-                if ! [ "\$scf_start" = "" ]
-                then
-                    find q\${{q}}_r\${{r}} -name "{pf}.wfc*" -exec rm {{}} \;
-                fi          
-             else
-                 all_ph_started=false         
-             fi             
-        done
-    done
-    
-    if ! [ \$wfc_found = true ] && [ \$all_ph_started = true ]
-    then
-        break
-    fi
-done
-EOF
+#IF SPLIT_Q
+#if irreducible q-point parallelization is enabled
+if $split_q && ! $split_irr
+then
+   cat > job.sh << EOF
+   {ph_janitor_sub}
+   #get the number of irreducible q-points
+   irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+   
+   while true
+   do
+       #stop if no more wfc are found ...
+       wfc_found=false
+       #..and all calculations have started
+       all_ph_started=true
+       
+       for ((q=1; q <= irr_qs; q++))
+       do
+           if [ -f q\${{q}}/ph_q\${{q}}.out ]
+           then        
+               wfc_files=\$(find q\${{q}} -name "{pf}.wfc*")
+               if ! [ "\$wfc_files" = "" ]
+               then
+                   wfc_found=true
+               fi                
+               scf_start=\$(grep "iter #   1" q\${{q}}/ph_q\${{q}}.out)
+               if ! [ "\$scf_start" = "" ]
+               then
+                   find q\${{q}} -name "{pf}.wfc*" -exec rm {{}} \;
+               fi          
+            else
+                all_ph_started=false         
+            fi             
+
+       done
+       
+       if ! [ \$wfc_found = true ] && [ \$all_ph_started = true ]
+       then
+           break
+       fi
+   done
+   EOF
+#ENDIF SPLIT_Q 
+
+
+#IF SPLIT_IRR
+#if irreducible representation parallelization is enabled
+elif $split_irr
+   then
+   cat > job.sh << EOF
+   {ph_janitor_sub}
+   #get the number of irreducible q-points
+   irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+   
+   #get the number of irreducible representations of each q-point and save them in an array
+   declare -a irreps
+   for ((i=0; i < irr_qs; i++))
+   do
+       q=\$((i+1))
+       irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
+       irreps[\$i]=\$irreps_el
+   done
+   
+   while true
+   do
+       #stop if no more wfc are found ...
+       wfc_found=false
+       #..and all calculations have started
+       all_ph_started=true
+       
+       for ((q=1; q <= irr_qs; q++))
+       do
+           i=\$((q-1))
+           for ((r=1; r <= irreps[i]; r++))
+           do
+               if [ -f q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out ]
+               then        
+                   wfc_files=\$(find q\${{q}}_r\${{r}} -name "{pf}.wfc*")
+                   if ! [ "\$wfc_files" = "" ]
+                   then
+                       wfc_found=true
+                   fi                
+                   scf_start=\$(grep "iter #   1" q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out)
+                   if ! [ "\$scf_start" = "" ]
+                   then
+                       find q\${{q}}_r\${{r}} -name "{pf}.wfc*" -exec rm {{}} \;
+                   fi          
+                else
+                    all_ph_started=false         
+                fi             
+           done
+       done
+       
+       if ! [ \$wfc_found = true ] && [ \$all_ph_started = true ]
+       then
+           break
+       fi
+   done
+   EOF
+fi
+#ENDIF SPLIT_IRR
 {ph_janitor_cond_sub}
 fi
 #ENDIF CALC_START
