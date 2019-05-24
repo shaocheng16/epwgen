@@ -1030,7 +1030,7 @@ do
 if [ ! -d  q\${{q}}_r\${{r}}/_ph0/{pf}.phsave ]
 then
 mkdir -p q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
-cp -r {pf}.* q\${{q}}_r\${{r}}
+ln -s $PWD/{pf}.save q\${{q}}_r\${{r}}/{pf}.save
 cp -r _ph0/{pf}.phsave/* q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
 fi
 
@@ -1047,19 +1047,7 @@ echo "    /" >>  ph_q\${{q}}_r\${{r}}.in
 #make the job file
 cat > job_temp.sh << EOF1
 {ph_q_r_sub}
-\#delete the wave functions immediately after the calculation is done
-if [ -f ph_q\${{q}}_r\${{r}}.out ] && [ \${{q}} -ne 1 ]
-then
-status=\\\\\$(tail -n2 ph_q\${{q}}_r\${{r}}.out | head -n1 | awk '{{print \\\\\$2}}')
-if [ "\\\\\$status" == "DONE." ]
-then 
-rm _ph0/{pf}.q_\${{q}}/*.wfc*
-rm {pf}.save/wfc**.dat
-rm *.wfc*
-fi
-fi
 EOF1
-
 #remove escapes
 sed -i 's/\\\\\#/#/g' job_temp.sh
 
@@ -1089,8 +1077,60 @@ EOF
 fi
 #ENDIF SPLIT_IRR
 
-
 {ph_manager_cond_sub}
+
+#janitor    
+cat > job.sh << EOF
+{ph_janitor_sub}
+#get the number of irreducible q-points
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+
+#get the number of irreducible representations of each q-point and save them in an array
+declare -a irreps
+for ((i=0; i < irr_qs; i++))
+do
+    q=\$((i+1))
+    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
+    irreps[\$i]=\$irreps_el
+done
+
+while true
+do
+    #stop if no more wfc are found ...
+    wfc_found=false
+    #..and all calculations have started
+    all_ph_started=true
+    
+    for ((q=1; q <= irr_qs; q++))
+    do
+        i=\$((q-1))
+        for ((r=1; r <= irreps[i]; r++))
+        do
+            if [ -f q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out ]
+            then        
+                wfc_files=\$(find q\${{q}}_r\${{r}} -name "{pf}.wfc*")
+                if ! [ "\$wfc_files" = "" ]
+                then
+                    wfc_found=true
+                fi                
+                scf_start=\$(grep "iter #   1" q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out)
+                if ! [ "\$scf_start" = "" ]
+                then
+                    find q\${{q}}_r\${{r}} -name "{pf}.wfc*" -exec rm {{}} \;
+                fi          
+             else
+                 all_ph_started=false         
+             fi             
+        done
+    done
+    
+    if ! [ \$wfc_found = true ] && [ \$all_ph_started = true ]
+    then
+        break
+    fi
+done
+EOF
+{ph_janitor_cond_sub}
 fi
 #ENDIF CALC_START
 
@@ -1317,6 +1357,8 @@ fi
            ph_all_sub = make_job_sub(jobname + '_ph_all',num_of_cpu_ph,ram,q_t,'ph_all.in','ph_all.out','ph.x',jobname + '_ph_init'),
            ph_manager_sub = make_job_sub(jobname + '_ph_manager',1,ram,4,'','','',jobname + '_ph_init'),
            ph_manager_cond_sub = check_cond_sub(6),
+           ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,4,'','','',jobname + '_ph_init'),
+           ph_janitor_cond_sub = check_cond_sub(6),
            ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','ph.x','',True),
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
