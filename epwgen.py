@@ -1446,7 +1446,7 @@ fi
            ph_all_sub = make_job_sub(jobname + '_ph_all',num_of_cpu_ph,ram,q_t,'ph_all.in','ph_all.out','ph.x',jobname + '_ph_init'),
            ph_manager_sub = make_job_sub(jobname + '_ph_manager',1,ram,4,'','','',jobname + '_ph_init'),
            ph_manager_cond_sub = check_cond_sub(6),
-           ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,4,'','','',jobname + '_ph_init'),
+           ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,24,'','','',jobname + '_ph_init'),
            ph_janitor_cond_sub = check_cond_sub(6),
            ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','ph.x','',True),
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
