@@ -963,7 +963,7 @@ irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 
 #run a phonon calculation for every irreducible q-point
 for ((q=1; q <= \$irr_qs; q++))
-
+   do
    #make directories for the irreducible q-point and copy necessary stuff there
    if [ ! -d  q\${{q}}/_ph0/{pf}.phsave ]
    then
@@ -1059,9 +1059,18 @@ do
    echo "    /" >>  ph_q\${{q}}_r\${{r}}.in
    
    #make the job file
-   cat > job_temp.sh << EOF1
+   if [ \${{r}} -eq 1 ]
+   then
+       cat > job_temp.sh << EOF1
 {ph_q_r_sub}
 EOF1
+   else
+       cat > job_temp.sh << EOF1
+{ph_q_r1_sub}
+cp -r ../q\${{q}}_r1/_ph0/{pf}.q_\${{q}}/* _ph0/{pf}.q_\${{q}}
+mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
+EOF1
+   fi
 
    #remove escapes
    sed -i 's/\\\\\#/#/g' job_temp.sh
@@ -1446,10 +1455,11 @@ fi
            ph_all_sub = make_job_sub(jobname + '_ph_all',num_of_cpu_ph,ram,q_t,'ph_all.in','ph_all.out','ph.x',jobname + '_ph_init'),
            ph_manager_sub = make_job_sub(jobname + '_ph_manager',1,ram,4,'','','',jobname + '_ph_init'),
            ph_manager_cond_sub = check_cond_sub(6),
-           ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,24,'','','',jobname + '_ph_init'),
+           ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,4,'','','',jobname + '_ph_init'),
            ph_janitor_cond_sub = check_cond_sub(6),
            ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','ph.x','',True),
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
+		   ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
            q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'','','',jobname + '_ph_collect'),
