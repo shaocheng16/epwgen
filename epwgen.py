@@ -1067,7 +1067,7 @@ EOF1
    else
        cat > job_temp.sh << EOF1
 {ph_q_r1_sub}
-cp -r ../q\${{q}}_r1/_ph0/{pf}.q_\${{q}}/* _ph0/{pf}.q_\${{q}}
+cp -r ../q\${{q}}_r1/_ph0 .
 mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
 EOF1
    fi
@@ -1184,7 +1184,7 @@ then
        for ((q=2; q <= irr_qs; q++))
        do
            i=\$((q-1))
-           for ((r=1; r <= irreps[i]; r++))
+           for ((r=2; r <= irreps[i]; r++))
            do
                if [ -f q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out ]
                then        
