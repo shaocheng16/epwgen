@@ -320,7 +320,7 @@ def check_cond_sub(_index, _scf = False):
     cond_sub = ''''''
     if not _scf:
         cond_sub += 'if (($calc_start == ' + str(_index) + '))' + '\n' + 'then' + '\n'
-        cond_sub += 'line=$(grep -n \"#BSUB -w\" job.sh' + ' | cut -d : -f 1)' + '\n'
+        cond_sub += 'line=$(grep -n -m1 \"#BSUB -w\" job.sh' + ' | cut -d : -f 1)' + '\n'
         cond_sub += 'sed -i ${line}d job.sh' + '\n' + 'fi' + '\n'
     
     cond_sub += 'if ! $no_sub' + '\n' + 'then' + '\n'
@@ -1140,6 +1140,8 @@ do
             if ! [ "\$scf_start" = "" ]
             then
                 find q\${{q}} -name "{pf}.wfc*" -exec rm {{}} \;
+                find q\${{q}} -name "{pf}.bar*" -exec rm {{}} \;
+                find q\${{q}} -name "{pf}.dwf*" -exec rm {{}} \;
             fi          
          else
              all_ph_started=false         
@@ -1197,6 +1199,8 @@ then
                    if ! [ "\$scf_start" = "" ]
                    then
                        find q\${{q}}_r\${{r}} -name "{pf}.wfc*" -exec rm {{}} \;
+                       find q\${{q}}_r\${{r}} -name "{pf}.bar*" -exec rm {{}} \;
+                       find q\${{q}}_r\${{r}} -name "{pf}.dwf*" -exec rm {{}} \;
                    fi          
                 else
                     all_ph_started=false         
