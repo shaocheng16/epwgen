@@ -1188,7 +1188,7 @@ then
        #..and all calculations have started
        all_ph_started=true
        
-       for ((q=2; q <= irr_qs; q++))
+       for ((q=1; q <= irr_qs; q++))
        do
            i=\$((q-1))
            for ((r=2; r <= irreps[i]; r++))
