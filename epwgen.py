@@ -1066,8 +1066,8 @@ do
 mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
 #update janitor time
 #LSF
-collect_id=\$(bjobs -J {jobname}_ph_janitor | tail -n1 | awk '{{print \$1}}')
-bmod -Wep+ 40 \$collect_id
+#janitor_id=\$(bjobs -J {jobname}_ph_janitor | tail -n1 | awk '{{print \$1}}')
+#bmod -Wep+ 40 \$janitor_id
 EOF1
    else
        cat > job_temp.sh << EOF1
@@ -1083,8 +1083,9 @@ EOF1
    #in the case of a restart only submit the job if it's not finished yet
    if [ -f ph_q\${{q}}_r\${{r}}.out ]
    then
-      status=\$(tail -n2 ph_q\${{q}}_r\${{r}}.out | head -n1 | awk '{{print \$2}}')
-      if [ ! "\$status" == "DONE." ]
+      status1=\$(grep "Convergence has been achieved" ph_q\${{q}}_r\${{r}}.out)
+	  status2=\$(grep "JOB DONE." ph_q\${{q}}_r\${{r}}.out)
+      if [ "\$status1" == "" ] && [ "\$status2" == "" ]
       then
          #LSF
          bsub<job_temp.sh
@@ -1300,8 +1301,9 @@ EOF
 #make sure that all phonon calculations have finished without problems
 for ph in \$(ls q*_r*/ph_q*_r*.out)
 do
-   status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
-   if [ ! "\$status" == "DONE." ]
+   status1=\$(grep "Convergence has been achieved" \$ph)
+   status2=\$(grep "JOB DONE." \$ph)
+   if [ "\$status1" == "" ] && [ "\$status2" == "" ]
    then
       echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
       exit
