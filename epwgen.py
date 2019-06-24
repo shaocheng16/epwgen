@@ -1063,6 +1063,11 @@ do
    then
        cat > job_temp.sh << EOF1
 {ph_q_r_sub}
+mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
+#update janitor time
+#LSF
+collect_id=\$(bjobs -J {jobname}_ph_janitor | tail -n1 | awk '{{print \$1}}')
+bmod -Wep+ 40 \$collect_id
 EOF1
    else
        cat > job_temp.sh << EOF1
@@ -1093,8 +1098,8 @@ EOF1
 done
 
 #update the conditions once all jobs are submitted
-collect_id=\$(bjobs -J {jobname}_ph_collect | tail -n1 | awk '{{print \$1}}')
 #LSF
+collect_id=\$(bjobs -J {jobname}_ph_collect | tail -n1 | awk '{{print \$1}}')
 bmod -w "{jobname}_ph_q*" \$collect_id
 sleep 10
 
@@ -1461,9 +1466,9 @@ fi
            ph_manager_cond_sub = check_cond_sub(6),
            ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,4,'','','',jobname + '_ph_init'),
            ph_janitor_cond_sub = check_cond_sub(6),
-           ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','ph.x','',True),
+           ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','','',True),
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
-		   ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
+	   ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
            q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'','','',jobname + '_ph_collect'),
