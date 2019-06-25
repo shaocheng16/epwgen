@@ -27,6 +27,8 @@ epw_t = 1
 split_q = True
 #specify if phonon calculations should additionally be split into calculations of irreducible represenations.
 #split_q is automatically enabled if split_irr is enabled and split_irr is disabled if split_q is disabled.
+#To save space recovering (ph::recover) is not possible when split_irr. However finished calculations at an irreducible representation won't be calculated
+#again if they have finished in a previous run.
 split_irr = True
 #if the right electron and phonon bands have already been calculated in another parent directory you can set
 #ref_bands to True. epw.sh will then run with the corresponding input of the parent directory s.t. the bands
@@ -1019,6 +1021,9 @@ EOF
     #if irreducible representation parallelization is enabled
     elif $split_irr
     then
+      #remove .mixd and .recover files from previous run if present to save space
+      find . -name "*.mixd*" -exec rm {{}} \\;
+      find . -name "*.recover" -exec rm {{}} \\;
       cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
@@ -1051,7 +1056,8 @@ do
    cd q\${{q}}_r\${{r}}
    #prepare the input file
    cp ../ph.in ph_q\${{q}}_r\${{r}}.in
-
+   line=\$(grep -n recover ph_q\${{q}}_r\${{r}}.in | cut -d : -f 1)
+   sed -i "\${{line}}s/\.true\./\.false\./1" ph_q\${{q}}_r\${{r}}.in
    echo "    start_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
    echo "    last_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
    echo "    start_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
@@ -1084,7 +1090,7 @@ EOF1
    if [ -f ph_q\${{q}}_r\${{r}}.out ]
    then
       status1=\$(grep "Convergence has been achieved" ph_q\${{q}}_r\${{r}}.out)
-	  status2=\$(grep "JOB DONE." ph_q\${{q}}_r\${{r}}.out)
+      status2=\$(grep "JOB DONE." ph_q\${{q}}_r\${{r}}.out)
       if [ "\$status1" == "" ] && [ "\$status2" == "" ]
       then
          #LSF
@@ -1207,6 +1213,7 @@ then
                        find q\${{q}}_r\${{r}} -name "{pf}.wfc*" -exec rm {{}} \;
                        find q\${{q}}_r\${{r}} -name "{pf}.bar*" -exec rm {{}} \;
                        find q\${{q}}_r\${{r}} -name "{pf}.dwf*" -exec rm {{}} \;
+                       find q\${{q}}_r\${{r}} -name "{pf}.recover*" -exec rm {{}} \;
                    fi          
                 else
                     all_ph_started=false         
@@ -1470,7 +1477,7 @@ fi
            ph_janitor_cond_sub = check_cond_sub(6),
            ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','','',True),
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
-	   ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
+       ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
            q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'','','',jobname + '_ph_collect'),
