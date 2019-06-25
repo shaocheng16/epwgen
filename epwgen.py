@@ -1021,9 +1021,6 @@ EOF
     #if irreducible representation parallelization is enabled
     elif $split_irr
     then
-      #remove .mixd and .recover files from previous run if present to save space
-      find . -name "*.mixd*" -exec rm {{}} \\;
-      find . -name "*.recover" -exec rm {{}} \\;
       cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
@@ -1054,6 +1051,16 @@ do
    fi
    
    cd q\${{q}}_r\${{r}}
+   
+   #remove .mixd and .recover files from previous run if present to save space
+   find . -name "*.recover" -exec rm {{}} \\;
+   bjobs_query=\$(bjobs -J {pf}_ph_q\${{q}}_r\${{r}} 2>/dev/null)
+   if [ "\$bjobs_query" == "" ]
+   then
+       find . -name "*.mixd*" -exec rm {{}} \\;
+   fi
+   
+   
    #prepare the input file
    cp ../ph.in ph_q\${{q}}_r\${{r}}.in
    line=\$(grep -n recover ph_q\${{q}}_r\${{r}}.in | cut -d : -f 1)
@@ -1086,8 +1093,8 @@ EOF1
    #remove escapes
    sed -i 's/\\\\\#/#/g' job_temp.sh
    
-   #in the case of a restart only submit the job if it's not finished yet
-   if [ -f ph_q\${{q}}_r\${{r}}.out ]
+   #in the case of a restart only submit the job if it's not finished yet and no other jobs of the same name are running
+   if [ "\$bjobs_query" == "" ] && [ -f ph_q\${{q}}_r\${{r}}.out ]
    then
       status1=\$(grep "Convergence has been achieved" ph_q\${{q}}_r\${{r}}.out)
       status2=\$(grep "JOB DONE." ph_q\${{q}}_r\${{r}}.out)
@@ -1096,6 +1103,10 @@ EOF1
          #LSF
          bsub<job_temp.sh
       fi
+   elif [ ! "\$bjobs_query" == "" ]
+   then
+       cd ..
+	   continue
    else
       #LSF
       bsub<job_temp.sh
