@@ -473,7 +473,7 @@ bands_ip_in = ['''
 &BANDS
  prefix='{pf}'
  outdir='.'
- filband = '{pf}bands.dat'
+ filband = '{pf}.bands.dat'
  lsym=.true.
 /
 '''.format(pf = pf)]
@@ -1053,18 +1053,20 @@ do
    cd q\${{q}}_r\${{r}}
    
    #remove .mixd and .recover files from previous run if present to save space
-   find . -name "*.recover" -exec rm {{}} \\;
-   bjobs_query=\$(bjobs -J {pf}_ph_q\${{q}}_r\${{r}} 2>/dev/null)
-   if [ "\$bjobs_query" == "" ]
-   then
-       find . -name "*.mixd*" -exec rm {{}} \\;
-   fi
+   if [ \${{r}} -ne 1 ]
+   then 
+       find . -name "*.recover" -exec rm {{}} \\;
+       #LSF
+       bjobs_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r\${{r}} 2>/dev/null)
+       if [ "\$bjobs_query" == "" ]
+       then
+           find . -name "*.mixd*" -exec rm {{}} \\;
+       fi
+	fi
    
    
    #prepare the input file
    cp ../ph.in ph_q\${{q}}_r\${{r}}.in
-   line=\$(grep -n recover ph_q\${{q}}_r\${{r}}.in | cut -d : -f 1)
-   sed -i "\${{line}}s/\.true\./\.false\./1" ph_q\${{q}}_r\${{r}}.in
    echo "    start_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
    echo "    last_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
    echo "    start_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
@@ -1075,8 +1077,7 @@ do
    if [ \${{r}} -eq 1 ]
    then
        cat > job_temp.sh << EOF1
-{ph_q_r_sub}
-mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
+{ph_q_r1_sub}
 #update janitor time
 #LSF
 #janitor_id=\$(bjobs -J {jobname}_ph_janitor | tail -n1 | awk '{{print \$1}}')
@@ -1084,7 +1085,7 @@ mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\$
 EOF1
    else
        cat > job_temp.sh << EOF1
-{ph_q_r1_sub}
+{ph_q_r_sub}
 cp -r ../q\${{q}}_r1/_ph0 .
 mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
 EOF1
@@ -1092,6 +1093,18 @@ EOF1
 
    #remove escapes
    sed -i 's/\\\\\#/#/g' job_temp.sh
+   
+   #for r>1 check if there is an r1 calculation running. If not, remove the waiting condition
+   if [ \${{r}} -ne 1 ]
+   then
+          #LSF
+          bjobs_r1_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r1 2>/dev/null)
+          if [ "\$bjobs_r1_query" == "" ]
+          then
+              line=\$(grep -n "\-w" job_temp.sh | cut -d : -f 1)
+              sed -i "\${{line}}d" job_temp.sh
+          fi
+   fi
    
    #in the case of a restart only submit the job if it's not finished yet and no other jobs of the same name are running
    if [ "\$bjobs_query" == "" ] && [ -f ph_q\${{q}}_r\${{r}}.out ]
@@ -1103,10 +1116,12 @@ EOF1
          #LSF
          bsub<job_temp.sh
       fi
+   #if there are jobs of the same name don't restart
    elif [ ! "\$bjobs_query" == "" ]
    then
        cd ..
-	   continue
+       continue
+   #if there are no jobs of the same name and no output file exists yet, start
    else
       #LSF
       bsub<job_temp.sh
@@ -1487,8 +1502,8 @@ fi
            ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,4,'','','',jobname + '_ph_init'),
            ph_janitor_cond_sub = check_cond_sub(6),
            ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','','',True),
-           ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
-       ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
+           ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
+           ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
            q2r_sub = make_job_sub(jobname + '_q2r',1,ram,4,'','','',jobname + '_ph_collect'),
