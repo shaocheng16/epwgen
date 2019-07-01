@@ -492,6 +492,7 @@ ph_in = ['''
     asr      = {asr_enable}        
     tr2_ph   = {tr2_ph}
     recover = .true.
+    search_sym = .false.
 '''.format(pf = pf, nq1 = nq1, nq2 = nq2, nq3 = nq3, asr_enable = asr_enable, tr2_ph = tr2_ph)]
 
 q2r_in = ['''
@@ -1062,7 +1063,7 @@ do
        then
            find . -name "*.mixd*" -exec rm {{}} \\;
        fi
-	fi
+   fi
    
    
    #prepare the input file
@@ -1078,6 +1079,7 @@ do
    then
        cat > job_temp.sh << EOF1
 {ph_q_r1_sub}
+cp -r _ph0 _ph0_temp
 #update janitor time
 #LSF
 #janitor_id=\$(bjobs -J {jobname}_ph_janitor | tail -n1 | awk '{{print \$1}}')
@@ -1086,7 +1088,8 @@ EOF1
    else
        cat > job_temp.sh << EOF1
 {ph_q_r_sub}
-cp -r ../q\${{q}}_r1/_ph0 .
+rm -r _ph0
+cp -r ../q\${{q}}_r1/_ph0_temp _ph0
 mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
 EOF1
    fi
