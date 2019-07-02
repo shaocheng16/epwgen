@@ -415,6 +415,7 @@ scf_in = ['''
     smearing    = '{smearing}'
     degauss     = {degauss}
     tot_charge  = {tot_charge}   
+    nbnd        = {nbnd}
     noncolin    = {noncolin_enable}
     lspinorb    = {lspinorb_enable}
 /
@@ -428,7 +429,7 @@ scf_in = ['''
 K_POINTS automatic
 {nk1} {nk2} {nk3} 0 0 0
 '''.format(pf = pf, pps_dir = pps_dir, nat = nat, ntyp = ntyp, ecutwfc = ecutwfc, 
-           occupations = occupations, smearing = smearing, degauss = degauss, tot_charge = tot_charge,
+           occupations = occupations, smearing = smearing, degauss = degauss, tot_charge = tot_charge, nbnd = nbnd,
            noncolin_enable = noncolin_enable, lspinorb_enable = lspinorb_enable, conv_thr = conv_thr,
            diagonalization = diagonalization, lattice = lattice, atoms = atoms, atom_positions = atom_positions, nk1 = nk1, nk2 = nk2, nk3 = nk3)]
 
@@ -825,7 +826,16 @@ split_irr={split_irr}
 
 #__________PREPARE_INPUT___________#
 base_dir=$(pwd)
+
+#if nbnd is determined automatically, we need to remove the flag from scf.in
+nbnd={nbnd}
+if [ $nbnd -eq 0 ]
+then
+    line=$(grep -n nbnd $base_dir/ELB/scf.in | cut -d : -f 1)
+	sed -i "${{line}}d" $base_dir/ELB/scf.in
+fi
 cp $base_dir/ELB/scf.in $base_dir/PHB
+
 
 #__________JOB_SUBMISSION___________#
 #======================================================================================#
@@ -1515,7 +1525,7 @@ fi
            matdyn_cond_sub = check_cond_sub(9),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
-           split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname, num_of_cpu_ph = num_of_cpu_ph)]
+           nbnd = nbnd, split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname, num_of_cpu_ph = num_of_cpu_ph)]
 
 #submission script for all calculations regarding electron-phonon coupling
 epw_sh = ['''
