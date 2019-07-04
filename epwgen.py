@@ -1089,7 +1089,10 @@ do
    then
        cat > job_temp.sh << EOF1
 {ph_q_r1_sub}
-cp -r _ph0 _ph0_temp
+if [ ! -d _ph0_temp ]
+then
+    cp -r _ph0 _ph0_temp
+fi
 #update janitor time
 #LSF
 #janitor_id=\$(bjobs -J {jobname}_ph_janitor | tail -n1 | awk '{{print \$1}}')
