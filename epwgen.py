@@ -43,7 +43,7 @@ bands_dir = ''
 #    -Quantum Espresso including EPW package
 #    -python
 #    -gnuplot (optional)
-modules = ['quantum_espresso/6.2.1', 'python/3.6.0', 'gnuplot']
+modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
 #these include wannier, bands_ip, q2r, matdyn
@@ -218,6 +218,28 @@ nstemps = 10
 nsiter = 500
 #___________________________END________________________________#
 #____________________NOW_RUN_THE_SCRIPT________________________#
+#support for a custom q-e version that:
+#  -supports cg diagonalization for ph.x
+#  -always looks for k+q bands regardless of the recover flag
+#  -keeps .bar, .mixd, and .dwf files in memory
+custom = False
+comment = ""
+ph_recover = ".false."
+irr_link_or_cp = """
+if [ ! -f _ph0 ]
+then
+   ln -s ../q\${q}_r1/_ph0 .
+fi
+"""
+if (not custom):
+    comment = "!"
+    ph_recover = ".true."
+    irr_link_or_cp = """
+if [ ! -d _ph0 ]
+then
+    cp -r ../q\${q}_r1/_ph0 .
+fi
+"""
 
 import os
 import string
@@ -492,9 +514,12 @@ ph_in = ['''
     nq3      = {nq3} 
     asr      = {asr_enable}        
     tr2_ph   = {tr2_ph}
-    recover = .true.
+    recover = {ph_recover}
     search_sym = .false.
-'''.format(pf = pf, nq1 = nq1, nq2 = nq2, nq3 = nq3, asr_enable = asr_enable, tr2_ph = tr2_ph)]
+    {comment}reduce_io = .true.
+    {comment}diagonalization = '{diagonalization}'
+'''.format(pf = pf, nq1 = nq1, nq2 = nq2, nq3 = nq3, asr_enable = asr_enable, tr2_ph = tr2_ph, diagonalization = diagonalization,
+           ph_recover = ph_recover, comment = comment)]
 
 q2r_in = ['''
 &INPUT
@@ -832,7 +857,10 @@ nbnd={nbnd}
 if [ $nbnd -eq 0 ]
 then
     line=$(grep -n nbnd $base_dir/ELB/scf.in | cut -d : -f 1)
-	sed -i "${{line}}d" $base_dir/ELB/scf.in
+    if ! [ "$line" = "" ]
+    then 
+        sed -i "${{line}}d" $base_dir/ELB/scf.in
+    fi
 fi
 cp $base_dir/ELB/scf.in $base_dir/PHB
 
@@ -977,12 +1005,12 @@ irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 #run a phonon calculation for every irreducible q-point
 for ((q=1; q <= \$irr_qs; q++))
    do
-   #make directories for the irreducible q-point and copy necessary stuff there
-   if [ ! -d  q\${{q}}/_ph0/{pf}.phsave ]
+
+   #make directories for the irreducible q-point and link unperturbed save directory 
+   if [ ! -d  q\${{q}} ]
    then
-      mkdir -p q\${{q}}/_ph0/{pf}.phsave
-      cp -r {pf}.* q\${{q}}
-      cp -r _ph0/{pf}.phsave/* q\${{q}}/_ph0/{pf}.phsave
+      mkdir q\${{q}}
+      ln -s $PWD/{pf}.save q\${{q}}/{pf}.save
    fi
    
    cd q\${{q}}
@@ -1053,29 +1081,15 @@ do
    for ((r=1; r <= irreps[i]; r++))
    do
 
-   #make directories for the irreducible representation and copy necessary stuff there
-   if [ ! -d  q\${{q}}_r\${{r}}/_ph0/{pf}.phsave ]
+   #make directories for the irreducible representation and link unperturbed save directory 
+   if [ ! -d  q\${{q}}_r\${{r}} ]
    then
-      mkdir -p q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
+      mkdir q\${{q}}_r\${{r}}
       ln -s $PWD/{pf}.save q\${{q}}_r\${{r}}/{pf}.save
-      cp -r _ph0/{pf}.phsave/* q\${{q}}_r\${{r}}/_ph0/{pf}.phsave
    fi
    
    cd q\${{q}}_r\${{r}}
-   
-   #remove .mixd and .recover files from previous run if present to save space
-   if [ \${{r}} -ne 1 ]
-   then 
-       find . -name "*.recover" -exec rm {{}} \\;
-       #LSF
-       bjobs_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r\${{r}} 2>/dev/null)
-       if [ "\$bjobs_query" == "" ]
-       then
-           find . -name "*.mixd*" -exec rm {{}} \\;
-       fi
-   fi
-   
-   
+        
    #prepare the input file
    cp ../ph.in ph_q\${{q}}_r\${{r}}.in
    echo "    start_q = \$q" >> ph_q\${{q}}_r\${{r}}.in
@@ -1083,26 +1097,21 @@ do
    echo "    start_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
    echo "    last_irr = \$r" >> ph_q\${{q}}_r\${{r}}.in
    echo "    /" >>  ph_q\${{q}}_r\${{r}}.in
+     
+   #give the dvscf files distinct names
+   line=\$(grep -n fildvscf ph_q\${{q}}_r\${{r}}.in | cut -d : -f 1)
+   sed -i "\${{line}}s/[^ ]*[^ ]/\'dvscf_r\${{r}}\'/3" ph_q\${{q}}_r\${{r}}.in   
    
    #make the job file
    if [ \${{r}} -eq 1 ]
    then
        cat > job_temp.sh << EOF1
 {ph_q_r1_sub}
-if [ ! -d _ph0_temp ]
-then
-    cp -r _ph0 _ph0_temp
-fi
-#update janitor time
-#LSF
-#janitor_id=\$(bjobs -J {jobname}_ph_janitor | tail -n1 | awk '{{print \$1}}')
-#bmod -Wep+ 40 \$janitor_id
 EOF1
    else
        cat > job_temp.sh << EOF1
 {ph_q_r_sub}
-rm -r _ph0
-cp -r ../q\${{q}}_r1/_ph0_temp _ph0
+{irr_link_or_cp}
 mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
 EOF1
    fi
@@ -1158,12 +1167,16 @@ EOF
     #_______________________________________#
 
 {ph_manager_cond_sub}
-
+fi
+#ENDIF CALC_START
 #______________________________________________________________________________________#
 
 #======================================================================================#
 #janitor 
-
+#janitor is deprecated
+#IF CALC_START
+if false
+then
 #=======================================#
 #IF SPLIT_Q
 #if irreducible q-point parallelization is enabled
@@ -1194,8 +1207,6 @@ do
             if ! [ "\$scf_start" = "" ]
             then
                 find q\${{q}} -name "{pf}.wfc*" -exec rm {{}} \;
-                find q\${{q}} -name "{pf}.bar*" -exec rm {{}} \;
-                find q\${{q}} -name "{pf}.dwf*" -exec rm {{}} \;
             fi          
          else
              all_ph_started=false         
@@ -1253,9 +1264,6 @@ then
                    if ! [ "\$scf_start" = "" ]
                    then
                        find q\${{q}}_r\${{r}} -name "{pf}.wfc*" -exec rm {{}} \;
-                       find q\${{q}}_r\${{r}} -name "{pf}.bar*" -exec rm {{}} \;
-                       find q\${{q}}_r\${{r}} -name "{pf}.dwf*" -exec rm {{}} \;
-                       find q\${{q}}_r\${{r}} -name "{pf}.recover*" -exec rm {{}} \;
                    fi          
                 else
                     all_ph_started=false         
@@ -1271,6 +1279,7 @@ then
 EOF
 fi
 #ENDIF SPLIT_IRR
+
 #_______________________________________#
 {ph_janitor_cond_sub}
 fi
@@ -1384,20 +1393,20 @@ do
       #combine the dvscf files bytewise
       if ((q==1))
       then
-         size_new=\$(ls -l q1_r\${{r}}/_ph0/{pf}.dvscf1 | awk '{{print \$5}}')
+         size_new=\$(ls -l q1_r\${{r}}/_ph0/{pf}.dvscf_r\${{r}}1 | awk '{{print \$5}}')
          _count=\$((size_new - size_old))
          _skip=\$((size_new - _count))
          size_old=\$size_new
-         dd if=q1_r\${{r}}/_ph0/{pf}.dvscf1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
+         dd if=q1_r\${{r}}/_ph0/{pf}.dvscf_r\${{r}}1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
          cat dvscf1_old dvscf1_temp > dvscf1_new
          mv dvscf1_new dvscf1_old
          
       else
-         size_new=\$(ls -l q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf1 | awk '{{print \$5}}')
+         size_new=\$(ls -l q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf_r\${{r}}1 | awk '{{print \$5}}')
          _count=\$((size_new - size_old))
          _skip=\$((size_new - _count))
          size_old=\$size_new
-         dd if=q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
+         dd if=q\${{q}}_r\${{r}}/_ph0/{pf}.q_\${{q}}/{pf}.dvscf_r\${{r}}1 of=dvscf1_temp skip=\$_skip count=\$_count iflag=skip_bytes,count_bytes
          cat dvscf1_old dvscf1_temp > dvscf1_new
          mv dvscf1_new dvscf1_old
       fi
@@ -1474,26 +1483,14 @@ if (($calc_start == 10)) && (($calc_end == 10))
 then
    cat > job.sh << EOF
 {tidy_sub}
-#phonon directory
-cd $base_dir/PHB
-rm -r q**/
-rm *.xml
-rm *.e
-rm *.o
-rm job*
-rm *dvscf*
-rm *wfc*
-rm matdyn.modes
-#electron directory
-cd $base_dir/ELB
-rm -r *.save/
-rm *.xml
-rm *.e
-rm *.o
-rm job*
-rm *wfc*
+find . -name "*.o" -exec rm {{}} \\;
+find . -name "*.e" -exec rm {{}} \\;
+find . -name "job" -exec rm {{}} \\;
+find . -name "*dvscf*" -exec rm {{}} \\;
+find . -name "*wfc*" -exec rm {{}} \\;
+find . -name "*.xml*" -exec rm {{}} \\;
+find . -name "*.save" -exec rm -r {{}} \\;
 EOF
-
    if ! $no_sub
    then
       bsub<job.sh
@@ -1517,7 +1514,7 @@ fi
            ph_manager_cond_sub = check_cond_sub(6),
            ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,4,'','','',jobname + '_ph_init'),
            ph_janitor_cond_sub = check_cond_sub(6),
-           ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','','',True),
+           ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','ph.x','',True),
            ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
@@ -1528,7 +1525,8 @@ fi
            matdyn_cond_sub = check_cond_sub(9),
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
-           nbnd = nbnd, split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname, num_of_cpu_ph = num_of_cpu_ph)]
+           nbnd = nbnd, split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname,
+           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp = irr_link_or_cp)]
 
 #submission script for all calculations regarding electron-phonon coupling
 epw_sh = ['''
