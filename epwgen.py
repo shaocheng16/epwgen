@@ -222,6 +222,7 @@ nsiter = 500
 #  -supports cg diagonalization for ph.x
 #  -always looks for k+q bands regardless of the recover flag
 #  -keeps .bar, .mixd, and .dwf files in memory
+#  -allows linking _ph0 directory of r1 to r>1 directories
 custom = False
 comment = ""
 ph_recover = ".false."
@@ -231,6 +232,7 @@ then
    ln -s ../q\${q}_r1/_ph0 .
 fi
 """
+pattern_irr = "0."
 if (not custom):
     comment = "!"
     ph_recover = ".true."
@@ -240,6 +242,7 @@ then
     cp -r ../q\${q}_r1/_ph0 .
 fi
 """
+    pattern_irr = ""
 
 import os
 import string
@@ -1070,7 +1073,7 @@ declare -a irreps
 for ((i=0; i < irr_qs; i++))
 do
     q=\$((i+1))
-    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
+    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.{pattern_irr}xml | tail -n1)
     irreps[\$i]=\$irreps_el
 done
     
@@ -1106,6 +1109,10 @@ do
    if [ \${{r}} -eq 1 ]
    then
        cat > job_temp.sh << EOF1
+if [ ! -d _ph0 ]
+then
+   cp -r _ph0 .
+fi
 {ph_q_r1_sub}
 EOF1
    else
@@ -1132,6 +1139,7 @@ EOF1
    fi
    
    #in the case of a restart only submit the job if it's not finished yet and no other jobs of the same name are running
+   bjobs_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r\${{r}} 2>/dev/null | grep "is not found") 
    if [ "\$bjobs_query" == "" ] && [ -f ph_q\${{q}}_r\${{r}}.out ]
    then
       status1=\$(grep "Convergence has been achieved" ph_q\${{q}}_r\${{r}}.out)
@@ -1237,7 +1245,7 @@ then
    for ((i=0; i < irr_qs; i++))
    do
        q=\$((i+1))
-       irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
+       irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.{pattern_irr}xml | tail -n1)
        irreps[\$i]=\$irreps_el
    done
    
@@ -1374,7 +1382,7 @@ irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 for ((i=0; i < irr_qs; i++))
 do
     q=\$((i+1))
-    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
+    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.{pattern_irr}xml | tail -n1)
     irreps[\$i]=\$irreps_el
 done
 
@@ -1427,6 +1435,8 @@ done
 
 #prepare input file and execute
 cp ph.in ph_end.in
+line=\$(grep -n recover ph_end.in | cut -d : -f 1)
+sed -i "\${{line}}s/\.false\./\.true\./1" ph_end.in
 echo "    /" >> ph_end.in
 mpirun ph.x -npool 1 -in ph_end.in > ph_end.out
 
@@ -1515,7 +1525,7 @@ fi
            ph_janitor_sub = make_job_sub(jobname + '_ph_janitor',1,ram,4,'','','',jobname + '_ph_init'),
            ph_janitor_cond_sub = check_cond_sub(6),
            ph_q_sub = make_job_sub(jobname + '_ph_q\${q}',num_of_cpu_ph,ram,q_t,'ph_q\${q}.in','ph_q\${q}.out','ph.x','',True),
-           ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','ph.x','',True),
+           ph_q_r1_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','','',True),
            ph_q_r_sub = make_job_sub(jobname + '_ph_q\${q}_r\${r}',num_of_cpu_ph,ram,q_t,'ph_q\${q}_r\${r}.in','ph_q\${q}_r\${r}.out','',jobname + '_ph_q\${q}_r1',True),
            ph_collect_sub = make_job_sub(jobname + '_ph_collect',1,ram,4,'','','',jobname + '_ph_manager'),
            ph_collect_cond_sub = check_cond_sub(7),
@@ -1526,7 +1536,7 @@ fi
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
            nbnd = nbnd, split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname,
-           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp = irr_link_or_cp)]
+           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp = irr_link_or_cp, pattern_irr = pattern_irr)]
 
 #submission script for all calculations regarding electron-phonon coupling
 epw_sh = ['''
