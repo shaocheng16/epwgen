@@ -43,7 +43,7 @@ bands_dir = ''
 #    -Quantum Espresso including EPW package
 #    -python
 #    -gnuplot (optional)
-modules = ['quantum_espresso/6.4', 'python/3.6.0', 'gnuplot']
+modules = ['quantum_espresso/6.4_rol', 'python/3.6.0', 'gnuplot']
 
 #note: time limits for calculations which should not take long have been set to 4h (shortest cluster limit)
 #these include wannier, bands_ip, q2r, matdyn
@@ -520,7 +520,8 @@ ph_in = ['''
     recover = {ph_recover}
     search_sym = .false.
     {comment}reduce_io = .true.
-    {comment}diagonalization = '{diagonalization}'
+    !{comment}diagonalization = '{diagonalization}'
+    {comment}link_bands = .true.
 '''.format(pf = pf, nq1 = nq1, nq2 = nq2, nq3 = nq3, asr_enable = asr_enable, tr2_ph = tr2_ph, diagonalization = diagonalization,
            ph_recover = ph_recover, comment = comment)]
 
@@ -839,6 +840,12 @@ ep_bands_sh = ['''
 calc_start=1
 calc_end=9
 
+#specify a single q-point that should be calculated. Set to 0 to calculate all q's.
+only_q=0
+#specify if for every q-point only the first irrep should be calculated
+only_r1=false
+
+
 #If you need a specific submission script (e.g. for the q2r run) set calc_start = calc_end (e.g. = 8) and set no_sub
 #to true. You'll find the job script as job.sh in the corresponding directory.
 no_sub=false
@@ -967,6 +974,10 @@ cp ph.in ph_start.in
 echo "    start_irr = 0" >> ph_start.in
 echo "    last_irr  = 0" >> ph_start.in
 echo "    /" >> ph_start.in
+if [ ! -d _ph0/{pf}.phsave ]
+then
+   mkdir -p _ph0/{pf}.phsave
+fi
 mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
 EOF
    
@@ -1008,7 +1019,11 @@ irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
 #run a phonon calculation for every irreducible q-point
 for ((q=1; q <= \$irr_qs; q++))
    do
-
+   if [ ! $only_q -eq 0 ] && [ ! \$q -eq $only_q ]
+   then
+       continue
+   fi
+   
    #make directories for the irreducible q-point and link unperturbed save directory 
    if [ ! -d  q\${{q}} ]
    then
@@ -1075,11 +1090,19 @@ do
     q=\$((i+1))
     irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.{pattern_irr}xml | tail -n1)
     irreps[\$i]=\$irreps_el
+    if $only_r1
+    then
+	   irreps[\$i]=1
+    fi
 done
     
 #run a phonon calculation for every irreducible representation of every irreducible q-point 
 for ((q=1; q <= irr_qs; q++))
 do
+   if [ ! $only_q -eq 0 ] && [ ! \$q -eq $only_q ]
+   then
+       continue
+   fi
    i=\$((q-1))
    for ((r=1; r <= irreps[i]; r++))
    do
@@ -1109,11 +1132,12 @@ do
    if [ \${{r}} -eq 1 ]
    then
        cat > job_temp.sh << EOF1
-if [ ! -d _ph0 ]
-then
-   cp -r _ph0 .
-fi
 {ph_q_r1_sub}
+if [ ! -d _ph0/{pf}.phsave ]
+then
+   mkdir -p _ph0/{pf}.phsave
+fi
+mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
 EOF1
    else
        cat > job_temp.sh << EOF1
@@ -1140,7 +1164,7 @@ EOF1
    
    #in the case of a restart only submit the job if it's not finished yet and no other jobs of the same name are running
    bjobs_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r\${{r}} 2>/dev/null | grep "is not found") 
-   if [ "\$bjobs_query" == "" ] && [ -f ph_q\${{q}}_r\${{r}}.out ]
+   if [ ! "\$bjobs_query" == "" ] && [ -f ph_q\${{q}}_r\${{r}}.out ]
    then
       status1=\$(grep "Convergence has been achieved" ph_q\${{q}}_r\${{r}}.out)
       status2=\$(grep "JOB DONE." ph_q\${{q}}_r\${{r}}.out)
@@ -1349,7 +1373,7 @@ for ((q=1; q<=irr_qs;q++))
    fi
 done
 
-#prepare input file and execute
+#prepare input file and execute 
 cp ph.in ph_end.in
 echo "    /" >> ph_end.in
 mpirun ph.x -npool 1 -in ph_end.in > ph_end.out
@@ -1435,6 +1459,9 @@ done
 
 #prepare input file and execute
 cp ph.in ph_end.in
+#disable link_bands if enabled in order to recover
+line=\$(grep -n link_bands ph_end.in | cut -d : -f 1)
+sed -i "\${{line}}s/\.true\./\.false\./1" ph_end.in
 line=\$(grep -n recover ph_end.in | cut -d : -f 1)
 sed -i "\${{line}}s/\.false\./\.true\./1" ph_end.in
 echo "    /" >> ph_end.in
