@@ -9,6 +9,8 @@ jobname = pf
 pps_dir = '/cluster/scratch/mnoe/QE/pps' 
 #number of processors to be used for scf, bands and nscf calculations
 num_of_cpu_scf = 4
+#number of processors to be used for bands and nscf calculations
+num_of_cpu_nscf = 8
 #number of processors to be used for the phonon calculations (i.e. if you split the calculation into calculations of
 #irreducible modes, each of these calculations will be run with the specified amount of CPUs)
 num_of_cpu_ph = 4
@@ -223,7 +225,7 @@ nsiter = 500
 #  -always looks for k+q bands regardless of the recover flag
 #  -keeps .bar, .mixd, and .dwf files in memory
 #  -allows linking _ph0 directory of r1 to r>1 directories
-custom = False
+custom = True
 comment = ""
 ph_recover = ".false."
 irr_link_or_cp = """
@@ -838,7 +840,7 @@ ep_bands_sh = ['''
 #      ...needed for EPM calculations. This is not necessary but saves space. Usable only as a ...
 #      ...seperate (calc_start = calc_end) execution. Only use once you are sure that everything worked.)
 calc_start=1
-calc_end=9
+calc_end=6
 
 #specify a single q-point that should be calculated. Set to 0 to calculate all q's.
 only_q=0
@@ -1092,7 +1094,7 @@ do
     irreps[\$i]=\$irreps_el
     if $only_r1
     then
-	   irreps[\$i]=1
+       irreps[\$i]=1
     fi
 done
     
@@ -1154,8 +1156,8 @@ EOF1
    if [ \${{r}} -ne 1 ]
    then
           #LSF
-          bjobs_r1_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r1 2>/dev/null)
-          if [ "\$bjobs_r1_query" == "" ]
+          bjobs_r1_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r1 2>&1 | grep "is not found")
+          if [ ! "\$bjobs_r1_query" == "" ]
           then
               line=\$(grep -n "\-w" job_temp.sh | cut -d : -f 1)
               sed -i "\${{line}}d" job_temp.sh
@@ -1163,25 +1165,24 @@ EOF1
    fi
    
    #in the case of a restart only submit the job if it's not finished yet and no other jobs of the same name are running
-   bjobs_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r\${{r}} 2>/dev/null | grep "is not found") 
-   if [ ! "\$bjobs_query" == "" ] && [ -f ph_q\${{q}}_r\${{r}}.out ]
+   bjobs_query=\$(bjobs -J {jobname}_ph_q\${{q}}_r\${{r}} 2>&1 | grep "is not found") 
+   if [ ! "\$bjobs_query" == "" ] 
    then
-      status1=\$(grep "Convergence has been achieved" ph_q\${{q}}_r\${{r}}.out)
-      status2=\$(grep "JOB DONE." ph_q\${{q}}_r\${{r}}.out)
-      if [ "\$status1" == "" ] && [ "\$status2" == "" ]
+      if [ -f ph_q\${{q}}_r\${{r}}.out ]
       then
+         status=\$(grep "JOB DONE." ph_q\${{q}}_r\${{r}}.out)
+         if [ "\$status" == "" ]
+         then
+            #LSF
+            bsub<job_temp.sh
+         else
+            cd ..
+            continue
+         fi
+      else
          #LSF
          bsub<job_temp.sh
-      fi
-   #if there are jobs of the same name don't restart
-   elif [ ! "\$bjobs_query" == "" ]
-   then
-       cd ..
-       continue
-   #if there are no jobs of the same name and no output file exists yet, start
-   else
-      #LSF
-      bsub<job_temp.sh
+	  fi
    fi
    cd ..
    done
@@ -1391,9 +1392,8 @@ EOF
 #make sure that all phonon calculations have finished without problems
 for ph in \$(ls q*_r*/ph_q*_r*.out)
 do
-   status1=\$(grep "Convergence has been achieved" \$ph)
-   status2=\$(grep "JOB DONE." \$ph)
-   if [ "\$status1" == "" ] && [ "\$status2" == "" ]
+   status=\$(grep "JOB DONE." \$ph)
+   if [ "\$status" == "" ]
    then
       echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
       exit
@@ -1538,7 +1538,7 @@ fi
 
 '''.format(elb_scf_sub = make_job_sub(jobname + '_elb_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            elb_scf_cond_sub = check_cond_sub(1, True),
-           elb_sub = make_job_sub(jobname + '_elb',num_of_cpu_scf,ram,scf_t,'bands.in','bands.out','pw.x',jobname + '_elb_scf'),
+           elb_sub = make_job_sub(jobname + '_elb',num_of_cpu_nscf,ram,scf_t,'bands.in','bands.out','pw.x',jobname + '_elb_scf'),
            elb_cond_sub = check_cond_sub(2),
            elb_ip_sub = make_job_sub(jobname + '_elb_ip',num_of_cpu_scf,ram,4,'bands_ip.in','bands_ip.out','bands.x',jobname + '_elb'),
            elb_ip_cond_sub = check_cond_sub(3),
@@ -2039,7 +2039,7 @@ fi
 fi
 '''.format(epm_scf_sub = make_job_sub(jobname + '_epm_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            epm_scf_cond_sub = check_cond_sub(1, True),
-           epm_nscf_sub = make_job_sub(jobname + '_epm_nscf',num_of_cpu_scf,ram,scf_t,'nscf.in','nscf.out','pw.x',jobname + '_epm_scf'),
+           epm_nscf_sub = make_job_sub(jobname + '_epm_nscf',num_of_cpu_nscf,ram,scf_t,'nscf.in','nscf.out','pw.x',jobname + '_epm_scf'),
            epm_nscf_cond_sub = check_cond_sub(2),
            wannier_sub = make_job_sub(jobname + '_wannier',num_of_cpu_scf,ram,4,'wannier.in','wannier.out','epw.x',jobname + '_epm_nscf'),
            wannier_cond_sub = check_cond_sub(3),
@@ -2051,7 +2051,7 @@ fi
            a2F_cond_sub = check_cond_sub(6),
            iso_scf_sub = make_job_sub(jobname + '_iso_scf',num_of_cpu_scf,ram,scf_t,'scf.in','scf.out','pw.x',''),
            iso_scf_cond_sub = check_cond_sub(7, True),
-           iso_nscf_sub = make_job_sub(jobname + '_iso_nscf',num_of_cpu_scf,ram,scf_t,'nscf.in','nscf.out','pw.x',jobname + '_iso_scf'),
+           iso_nscf_sub = make_job_sub(jobname + '_iso_nscf',num_of_cpu_nscf,ram,scf_t,'nscf.in','nscf.out','pw.x',jobname + '_iso_scf'),
            iso_nscf_cond_sub = check_cond_sub(8),
            iso_sub = make_job_sub(jobname + '_iso',num_of_cpu_epw,ram,epw_t,'eliashberg_iso.in','eliashberg_iso.out','epw.x',jobname + '_iso_nscf'),
            iso_cond_sub = check_cond_sub(9),
