@@ -52,6 +52,7 @@ modules = ['quantum_espresso/6.4_rol', 'python/3.6.0', 'gnuplot']
 
 
 #__________________________STRUCTURE__________________________#
+#!!! WARNING: This script uses ibrav=0 which is not recommended and should be changed in the future !!!
 #lattice vectors in Angstrom
 #Syntax:
 #'''
@@ -225,7 +226,7 @@ nsiter = 500
 #  -always looks for k+q bands regardless of the recover flag
 #  -keeps .bar, .mixd, and .dwf files in memory
 #  -allows linking _ph0 directory of r1 to r>1 directories
-custom = True
+custom = False 
 comment = ""
 ph_recover = ".false."
 irr_link_or_cp = """
@@ -1182,7 +1183,7 @@ EOF1
       else
          #LSF
          bsub<job_temp.sh
-	  fi
+      fi
    fi
    cd ..
    done
@@ -1400,6 +1401,13 @@ do
    fi
 done
 
+#if bands were linked we need to rename the xml files
+if [ -f _ph0/{pf}.phsave/control_ph.1.0.xml ]
+then
+   mv _ph0/{pf}.phsave/control_ph.1.0.xml _ph0/{pf}.phsave/control_ph.xml
+   mv _ph0/{pf}.phsave/status_run.1.0.xml _ph0/{pf}.phsave/status_run.xml
+fi
+
 #collect files
 declare -a irreps
 irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
@@ -1421,6 +1429,12 @@ do
    
       #copy the dynmats
       cp q\${{q}}_r\${{r}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
+      
+      #rename the files if necessary
+      if [ -f _ph0/{pf}.phsave/patterns.\${{q}}.0.xml ]
+      then
+         mv _ph0/{pf}.phsave/patterns.\${{q}}.0.xml _ph0/{pf}.phsave/patterns.\${{q}}.xml 
+      fi
       
       #combine the dvscf files bytewise
       if ((q==1))
@@ -1595,7 +1609,8 @@ dis_win_min={dis_win_min}
 dis_win_max={dis_win_max}
 
 #Specify the starting and ending point of calculation. 
-#1: input preparation and scf calculation (set no_sub to true for just the input preparation)
+#0: postprocessing and input preparation
+#1: input preparation and scf calculation
 #2: nscf calculation for phonon linewidths
 #3: wannierization of the electron bands
 #Note it is a good idea to stop the calculation here and check the wannierized bands (i.e. compare them to the...
@@ -1612,8 +1627,7 @@ dis_win_max={dis_win_max}
 #     ...Usable only as a separate (calc_start = calc_end) execution.
 #(#12: tidy up - deletes everything but the obtained end results. This is not necessary but saves space...
 #     ...Usable only as a seperate (calc_start = calc_end) execution. Only use once you are sure that everything worked.)
-
-calc_start=1
+calc_start=0
 calc_end=3
 
 #If you need a specific submission script (e.g. for wannierization) set calc_start = calc_end (e.g. = 3) and set no_sub
@@ -1634,6 +1648,9 @@ then
 ref_dir=$base_dir
 fi
 
+#IF CALC_START
+if (($calc_start == 0))
+then
 #__________POSTPROCESSING__________#
 
 if [ ! -d $ref_dir/PHB/save ]
@@ -1644,9 +1661,6 @@ cd $base_dir
 fi
 
 #__________PREPARE_INPUT___________#
-#IF CALC_START
-if (($calc_start == 1))
-then
 cp $base_dir/ELB/scf.in $base_dir/EPM
 
 cp $base_dir/EPM/nscf.in_orig $base_dir/EPM/nscf.in
