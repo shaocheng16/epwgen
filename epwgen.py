@@ -229,22 +229,36 @@ nsiter = 500
 custom = False 
 comment = ""
 ph_recover = ".false."
+irr_link_or_cp_r1 = """
+if [ ! -f _ph0 ]
+then
+   mkdir -p _ph0/{pf}.phsave
+else
+   rm _ph0/{pf}.phsave/patterns.*.\${{r}}.xml
+fi
+""".format(pf = pf)
+
 irr_link_or_cp = """
 if [ ! -f _ph0 ]
 then
-   ln -s ../q\${q}_r1/_ph0 .
+   ln -s ../q\${{q}}_r1/_ph0 .
+   rm _ph0/{pf}.phsave/patterns.*.\${{r}}.xml
 fi
-"""
+""".format(pf = pf)
+
 pattern_irr = "0."
 if (not custom):
     comment = "!"
     ph_recover = ".true."
-    irr_link_or_cp = """
-if [ ! -d _ph0 ]
+    irr_link_or_cp_r1 = """
+if [ ! -d _ph0/{pf}.phsave ]
 then
-    cp -r ../q\${q}_r1/_ph0 .
+   mkdir -p _ph0/{pf}.phsave
+   cp -r ../_ph0/{pf}.phsave/* _ph0/{pf}.phsave
 fi
-"""
+""".format(pf = pf)
+
+    irr_link_or_cp = irr_link_or_cp_r1
     pattern_irr = ""
 
 import os
@@ -322,8 +336,8 @@ for p in wannier_init:
 projections_epw = '''('''
 for p in wannier_init:
     projections_epw +=  '\"' + p + '\" '
-projections_epw = projections_epw[:-1]
-projections_epw += ')'
+    projections_epw = projections_epw[:-1]
+    projections_epw += ')'
     
 #function to create job submission files
 #LSF
@@ -837,7 +851,8 @@ ep_bands_sh = ['''
 #7: phonon calculation finalization
 #8: phonon q2r run
 #9: phonon matdyn run
-#(#10: tidy up - deletes everything but the input/output files, the bands (i.e. electron and phonon bands) and the data...
+#(10: plot phonon dispersion)
+#(11: tidy up - deletes everything but the input/output files, the bands (i.e. electron and phonon bands) and the data...
 #      ...needed for EPM calculations. This is not necessary but saves space. Usable only as a ...
 #      ...seperate (calc_start = calc_end) execution. Only use once you are sure that everything worked.)
 calc_start=1
@@ -879,6 +894,43 @@ cp $base_dir/ELB/scf.in $base_dir/PHB
 
 
 #__________JOB_SUBMISSION___________#
+#======================================================================================#
+#gnuplot phonon disperion
+if ( (($calc_start == 10)) && ((! $calc_end == 10)) ) || ( ((! $calc_start == 10)) && (($calc_end == 10)) )
+then
+echo "Error: plotting the phonon dispersion is only possible as a separate execution"
+exit
+elif (($calc_start == 10)) && (($calc_start == $calc_end))
+then
+
+#get the Fermi energy
+Ef=$(grep Fermi $ref_dir/ELB/scf.out | awk '{{print $5}}')
+
+#make the gnuplot script
+cat > $base_dir/PHB/phonon_dispersion.gnu << EOF
+reset
+set terminal x11 dashed title "{pf} electron bands" 1
+set grid
+set linestyle 1 lc rgb "red" lw 2
+set yabel "[eV]"
+
+set arrow from graph 0.0, $Ef to graph 1.0, $Ef nohead
+plot "$base_dir/ELB/{pf}.bands.dat.gnu" u 1:2 w l ls 1 t ""
+
+reset
+set terminal x11 dashed title "{pf} phonon dispersion" 2
+set grid
+set linestyle 1 lc rgb "red" lw 2
+set yabel "[cm-1]"
+nbranch = 3*{nat}
+
+set arrow from graph 0.0, 0.0 to graph 1.0, 0.0 nohead
+plot for [i=1:nbranch] "$base_dir/PHB/{pf}.freq.gp" u 1:i w l ls 1 t ""
+EOF
+gnuplot -p "$base_dir/PHB/phonon_dispersion.gnu" 
+fi
+#______________________________________________________________________________________#
+
 #======================================================================================#
 #======================================================================================#
 #electron bands calculation
@@ -1136,10 +1188,8 @@ do
    then
        cat > job_temp.sh << EOF1
 {ph_q_r1_sub}
-if [ ! -d _ph0/{pf}.phsave ]
-then
-   mkdir -p _ph0/{pf}.phsave
-fi
+{irr_link_or_cp_r1}
+
 mpirun ph.x -npool {num_of_cpu_ph} -in ph_q\${{q}}_r\${{r}}.in > ph_q\${{q}}_r\${{r}}.out
 EOF1
    else
@@ -1401,13 +1451,6 @@ do
    fi
 done
 
-#if bands were linked we need to rename the xml files
-if [ -f _ph0/{pf}.phsave/control_ph.1.0.xml ]
-then
-   mv _ph0/{pf}.phsave/control_ph.1.0.xml _ph0/{pf}.phsave/control_ph.xml
-   mv _ph0/{pf}.phsave/status_run.1.0.xml _ph0/{pf}.phsave/status_run.xml
-fi
-
 #collect files
 declare -a irreps
 irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
@@ -1418,8 +1461,20 @@ do
     irreps[\$i]=\$irreps_el
 done
 
+#reinitialize if bands were linked
+if [ -f _ph0/{pf}.phsave/control_ph.1.0.xml ]
+then
+   rm -r _ph0
+   mkdir -p _ph0/{pf}.phsave
+   line=\$(grep -n link_bands ph_start.in | cut -d : -f 1)
+   sed -i "\${{line}}s/\.true\./\.false\./1" ph_start.in
+   line=\$(grep -n recover ph_start.in | cut -d : -f 1)
+   sed -i "\${{line}}s/\.false\./\.true\./1" ph_start.in
+   mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
+fi
+
 for ((q=1; q <= irr_qs; q++))
-do
+do   
    i=\$((q-1))
    size_new=0
    size_old=0
@@ -1429,13 +1484,7 @@ do
    
       #copy the dynmats
       cp q\${{q}}_r\${{r}}/_ph0/{pf}.phsave/dynmat.* _ph0/{pf}.phsave
-      
-      #rename the files if necessary
-      if [ -f _ph0/{pf}.phsave/patterns.\${{q}}.0.xml ]
-      then
-         mv _ph0/{pf}.phsave/patterns.\${{q}}.0.xml _ph0/{pf}.phsave/patterns.\${{q}}.xml 
-      fi
-      
+            
       #combine the dvscf files bytewise
       if ((q==1))
       then
@@ -1530,7 +1579,7 @@ fi
 
 #======================================================================================#
 #tidying up
-if (($calc_start == 10)) && (($calc_end == 10))
+if (($calc_start == 11)) && (($calc_end == 11))
 then
    cat > job.sh << EOF
 {tidy_sub}
@@ -1577,7 +1626,7 @@ fi
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
            nbnd = nbnd, split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname,
-           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp = irr_link_or_cp, pattern_irr = pattern_irr)]
+           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp_r1 = irr_link_or_cp_r1, irr_link_or_cp = irr_link_or_cp, pattern_irr = pattern_irr, nat = nat)]
 
 #submission script for all calculations regarding electron-phonon coupling
 epw_sh = ['''
