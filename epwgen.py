@@ -878,7 +878,13 @@ split_q={split_q}
 split_irr={split_irr}
 
 #__________PREPARE_INPUT___________#
+ref_bands={ref_bands}
 base_dir=$(pwd)
+ref_dir="{bands_dir}"
+if ! $ref_bands
+then
+ref_dir=$base_dir
+fi
 
 #if nbnd is determined automatically, we need to remove the flag from scf.in
 nbnd={nbnd}
@@ -907,27 +913,60 @@ then
 Ef=$(grep Fermi $ref_dir/ELB/scf.out | awk '{{print $5}}')
 
 #make the gnuplot script
-cat > $base_dir/PHB/phonon_dispersion.gnu << EOF
+cat > $base_dir/ELB/bands.gnu << EOF
 reset
+#____________________________________________#
+#plot the electron bands
 set terminal x11 dashed title "{pf} electron bands" 1
 set grid
-set linestyle 1 lc rgb "red" lw 2
-set yabel "[eV]"
+set linestyle 1 lc rgb "red" lw 2 #bands
+set linestyle 2 lc rgb "black" #high symmetry points
+set linestyle 3 lc rgb "blue" #fermi energy line
+set linestyle 4 lc rgb "black" lw 1.5 #zero frequency line
 
-set arrow from graph 0.0, $Ef to graph 1.0, $Ef nohead
-plot "$base_dir/ELB/{pf}.bands.dat.gnu" u 1:2 w l ls 1 t ""
+set ylabel "[eV]"
 
-reset
+#set the xrange
+n = ({num_of_hsp} - 1) * {path_prec} + 1
+xmax_elb = system("sed  " .n. "\\"q;d\\" $ref_dir/ELB/{pf}.bands.dat.gnu | awk '{{print \$1}}'")
+set xrange [0:xmax_elb]
+
+#get the high symmetry point positions and plot them
+do for [i=1:{num_of_hsp}] {{
+    hisym_pos = system("grep -m" .i. " \\"high-symmetry point:\\"  $ref_dir/ELB/bands_ip.out | tail -n1 | awk '{{print \$8}}'")
+    set arrow from first hisym_pos, graph 0 to first hisym_pos, graph 1 nohead ls 2
+}}
+
+#plot the fermi energy
+set arrow from graph 0.0, first $Ef to graph 1.0, first $Ef nohead ls 3 
+
+#plot the bands
+plot "$base_dir/ELB/{pf}.bands.dat.gnu" u 1:2 w l t "" ls 1 
+
+#____________________________________________#
+#plot the phonon dispersion 
+unset arrow
 set terminal x11 dashed title "{pf} phonon dispersion" 2
-set grid
-set linestyle 1 lc rgb "red" lw 2
-set yabel "[cm-1]"
-nbranch = 3*{nat}
 
-set arrow from graph 0.0, 0.0 to graph 1.0, 0.0 nohead
-plot for [i=1:nbranch] "$base_dir/PHB/{pf}.freq.gp" u 1:i w l ls 1 t ""
+set ylabel "[cm-1]"
+nbranch = 3*{nat}+1
+
+#set the xrange
+n = ({num_of_hsp} - 1) * {path_prec} + 1
+xmax_phb = system("sed  " .n. "\\"q;d\\" $base_dir/PHB/{pf}.freq.gp | awk '{{print \$1}}'")
+set xrange [0:xmax_phb]
+
+#get the high symmetry point positions and plot them
+do for [i=1:{num_of_hsp}] {{
+    index = (i-1)*{path_prec} + 1
+    hisym_pos = system("sed \\"" .index. "q;d\\" $base_dir/PHB/{pf}.freq.gp | awk '{{print \$1}}'")
+    set arrow from first hisym_pos, graph 0 to first hisym_pos, graph 1 nohead ls 2
+}}
+
+set arrow from graph 0.0, first 0.0 to graph 1.0, first 0.0 nohead ls 4
+plot for [i=1:nbranch] "$base_dir/PHB/{pf}.freq.gp" u 1:i w l t "" ls 1
 EOF
-gnuplot -p "$base_dir/PHB/phonon_dispersion.gnu" 
+gnuplot -p "$base_dir/ELB/bands.gnu" 
 fi
 #______________________________________________________________________________________#
 
@@ -1626,7 +1665,8 @@ fi
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
            nbnd = nbnd, split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname,
-           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp_r1 = irr_link_or_cp_r1, irr_link_or_cp = irr_link_or_cp, pattern_irr = pattern_irr, nat = nat)]
+           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp_r1 = irr_link_or_cp_r1, irr_link_or_cp = irr_link_or_cp, pattern_irr = pattern_irr, nat = nat,
+		   ref_bands = ref_bands, bands_dir = bands_dir, num_of_hsp = num_of_hsp, path_prec = path_prec)]
 
 #submission script for all calculations regarding electron-phonon coupling
 epw_sh = ['''
