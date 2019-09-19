@@ -233,8 +233,11 @@ irr_link_or_cp_r1 = """
 if [ ! -f _ph0 ]
 then
    mkdir -p _ph0/{pf}.phsave
-else
-   rm _ph0/{pf}.phsave/patterns.*.\${{r}}.xml
+   npat=\$(ls ../_ph0/{pf}.phsave/patterns.*.xml | wc -l)
+   for ((pat=1;pat<=npat;pat++))
+   do
+     cp ../_ph0/{pf}.phsave/patterns.\\\\\${{pat}}.xml _ph0/{pf}.phsave/patterns.\\\\\${{pat}}.\${{r}}.xml
+   done
 fi
 """.format(pf = pf)
 
@@ -242,11 +245,14 @@ irr_link_or_cp = """
 if [ ! -f _ph0 ]
 then
    ln -s ../q\${{q}}_r1/_ph0 .
-   rm _ph0/{pf}.phsave/patterns.*.\${{r}}.xml
-fi
+   npat=\$(ls ../_ph0/{pf}.phsave/patterns.*.xml | wc -l)
+   for ((pat=1;pat<=npat;pat++))
+   do
+     cp ../_ph0/{pf}.phsave/patterns.\\\\\${{pat}}.xml _ph0/{pf}.phsave/patterns.\\\\\${{pat}}.\${{r}}.xml
+   done
+   fi
 """.format(pf = pf)
 
-pattern_irr = "0."
 if (not custom):
     comment = "!"
     ph_recover = ".true."
@@ -259,7 +265,6 @@ fi
 """.format(pf = pf)
 
     irr_link_or_cp = irr_link_or_cp_r1
-    pattern_irr = ""
 
 import os
 import string
@@ -323,7 +328,7 @@ for hisym_point in hisym_path:
 kpoints_wannier += '\n'
 kpoints_wannier += '    ' + 'wdata(' + str(len(hisym_path) + 2) + ') = \'end kpoint_path\''
 kpoints_wannier += '\n'
-kpoints_wannier += '    ' + 'wdata(' + str(len(hisym_path) + 3) + ') = \'bands_num_points =' +  path_prec + '\''
+kpoints_wannier += '    ' + 'wdata(' + str(len(hisym_path) + 3) + ') = \'bands_num_points = ' +  path_prec + '\''
 
 #get the projections for wannier90
 index = 0
@@ -555,7 +560,8 @@ matdyn_in = ['''
     asr='{asr}'
     flfrc='{pf}.fc'
     flfrq='{pf}.freq'       
-    q_in_band_form=.true.
+    q_in_band_form = .true.
+	q_in_cryst_coord = .true.
 /
 {num_of_hsp}
 {kpoints}
@@ -619,6 +625,8 @@ wannier_in = ['''
     wdata(1) = 'bands_plot = .true.'
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
+	
+    lifc = .true.
         
     nk1 = {nk1}
     nk2 = {nk2}
@@ -658,6 +666,7 @@ wannier_epm_in = ['''
     wdata(2) = 'begin kpoint_path'
     {kpoints_wannier}
    
+    lifc = .true.
     asr_typ     = '{asr}'
     
     efermi_read = .true.
@@ -696,7 +705,10 @@ ph_lw_in = ['''
     fsthick     = {fsthick}
     eptemp      = {eptemp}
     degaussw    = {degaussw}             
-    
+
+    lifc = .true.
+    asr_typ     = '{asr}'
+	
     efermi_read = .true.
     fermi_energy = 0.0
     
@@ -711,7 +723,7 @@ ph_lw_in = ['''
     {fine_grids}
 /
 '''.format(pf = pf, dvscf_dir = dvscf_dir, delta_approx_enable = delta_approx_enable, fsthick = fsthick, eptemp = eptemp, degaussw = degaussw,
-           nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3, nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
+           asr = asr, nkf1 = nkf1, nkf2 = nkf2, nkf3 = nkf3, nk1 = nk1, nk2 = nk2, nk3 = nk3, nq1 = nq1, nq2 = nq2, nq3 = nq3,
            fine_grids = generate_fine_grids(random_sampling,random_nkf,random_nqf,nkf1,nkf2,nkf3,nqf1,nqf2,nqf3,True,pf))]
 
 
@@ -1068,11 +1080,17 @@ cp ph.in ph_start.in
 echo "    start_irr = 0" >> ph_start.in
 echo "    last_irr  = 0" >> ph_start.in
 echo "    /" >> ph_start.in
+
+line=\$(grep -n link_bands ph_start.in | cut -d : -f 1)
+sed -i "\${{line}}s/\.true\./\.false\./1" ph_start.in
+
 if [ ! -d _ph0/{pf}.phsave ]
 then
    mkdir -p _ph0/{pf}.phsave
 fi
+
 mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
+
 EOF
    
    {ph_init_cond_sub}
@@ -1108,7 +1126,7 @@ EOF
       cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print \$1}}')
 
 #run a phonon calculation for every irreducible q-point
 for ((q=1; q <= \$irr_qs; q++))
@@ -1175,14 +1193,14 @@ EOF
       cat > job.sh << EOF
 {ph_manager_sub}
 #get the number of irreducible q-points
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print \$1}}')
 
 #get the number of irreducible representations of each q-point and save them in an array
 declare -a irreps
 for ((i=0; i < irr_qs; i++))
 do
     q=\$((i+1))
-    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.{pattern_irr}xml | tail -n1)
+    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
     irreps[\$i]=\$irreps_el
     if $only_r1
     then
@@ -1207,7 +1225,7 @@ do
       mkdir q\${{q}}_r\${{r}}
       ln -s $PWD/{pf}.save q\${{q}}_r\${{r}}/{pf}.save
    fi
-   
+      
    cd q\${{q}}_r\${{r}}
         
    #prepare the input file
@@ -1308,7 +1326,7 @@ then
    cat > job.sh << EOF
 {ph_janitor_sub}
 #get the number of irreducible q-points
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print \$1}}')
 
 while true
 do
@@ -1353,14 +1371,14 @@ then
    cat > job.sh << EOF
    {ph_janitor_sub}
    #get the number of irreducible q-points
-   irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+   irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print \$1}}')
    
    #get the number of irreducible representations of each q-point and save them in an array
    declare -a irreps
    for ((i=0; i < irr_qs; i++))
    do
        q=\$((i+1))
-       irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.{pattern_irr}xml | tail -n1)
+       irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
        irreps[\$i]=\$irreps_el
    done
    
@@ -1437,18 +1455,31 @@ EOF
 {ph_collect_sub}
 
 #make sure that all phonon calculations have finished without problems
-for ph in \$(ls ph_q*/ph_q*.out)
+error=false
+index=0
+for ph in \$(ls q*/ph_q*.out)
 do
    status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
    if [ ! "\$status" == "DONE." ]
    then
-      echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
-      exit
+      error=true
+      if ((index==0)) 
+      then
+         echo "Error: not all phonon calculations have finished or they ran into problems.\n\\
+Resubmit the phonon calculation (without initialization) before collecting. The failed calculations are: "
+      fi
+      ((index++))
+      echo "$index: $ph"
    fi
 done
 
+if \$error
+then
+   exit
+fi
+
 #collect files
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print \$1}}')
 for ((q=1; q<=irr_qs;q++))
    do
    
@@ -1480,37 +1511,83 @@ EOF
 {ph_collect_sub}
 
 #make sure that all phonon calculations have finished without problems
+error=false
+index=0
 for ph in \$(ls q*_r*/ph_q*_r*.out)
 do
-   status=\$(grep "JOB DONE." \$ph)
-   if [ "\$status" == "" ]
+   status=\$(tail -n2 \$ph | head -n1 | awk '{{print \$2}}')
+   if [ ! "\$status" == "DONE." ]
    then
-      echo "Error: not all phonon calculations have finished or they ran into problems. Resubmit the phonon calculation (without initialization) before collecting."
-      exit
+      error=true
+      if ((index==0)) 
+      then
+         echo "Error: not all phonon calculations have finished or they ran into problems.\n\\
+Resubmit the phonon calculation (without initialization) before collecting. The failed calculations are: "
+      fi
+      ((index++))
+      echo "\$index: \$ph"
    fi
 done
 
+if \$error
+then
+   exit
+fi
+
 #collect files
 declare -a irreps
-irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print $1}}')
+irr_qs=\$(sed "2q;d" {pf}.dyn0 | awk '{{print \$1}}')
 for ((i=0; i < irr_qs; i++))
 do
     q=\$((i+1))
-    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.{pattern_irr}xml | tail -n1)
+    irreps_el=\$(grep -A1 "<NUMBER_IRR_REP" _ph0/{pf}.phsave/patterns.\${{q}}.xml | tail -n1)
     irreps[\$i]=\$irreps_el
 done
 
 #reinitialize if bands were linked
-if [ -f _ph0/{pf}.phsave/control_ph.1.0.xml ]
-then
-   rm -r _ph0
-   mkdir -p _ph0/{pf}.phsave
-   line=\$(grep -n link_bands ph_start.in | cut -d : -f 1)
-   sed -i "\${{line}}s/\.true\./\.false\./1" ph_start.in
-   line=\$(grep -n recover ph_start.in | cut -d : -f 1)
-   sed -i "\${{line}}s/\.false\./\.true\./1" ph_start.in
-   mpirun ph.x -npool 1 -in ph_start.in > ph_start.out
-fi
+#if [ -f _ph0/{pf}.phsave/control_ph.1.0.xml ]
+#then
+#   cp ph_start.in ph_start_temp.in
+#   line=\$(grep -n link_bands ph_start_temp.in | cut -d : -f 1)
+#   sed -i "\${{line}}s/\.true\./\.false\./1" ph_start_temp.in
+#   line=\$(grep -n recover ph_start_temp.in | cut -d : -f 1)
+#   sed -i "\${{line}}s/\.true\./\.false\./1" ph_start_temp.in
+#   mpirun ph.x -npool 1 -in ph_start_temp.in > ph_start_temp.out   
+#   rm ph_start_temp*
+#   
+#   #if we were linking bands make sure nothing went wrong with the displacements
+#   error=false
+#   index=0
+#   for ((q=1; q <= irr_qs; q++))
+#   do
+#      i=\$((q-1))
+#      for ((r=1; r <= irreps[i]; r++))
+#      do
+#         diffr=""
+#         if [ -f q\${{q}}_r1/_ph0/{pf}.phsave/patterns.\${{q}}.\${{r}}.xml ]
+#         then
+#            diffr=\$(diff _ph0/{pf}.phsave/patterns.\${{q}}.xml q\${{q}}_r1/_ph0/{pf}.phsave/patterns.\${{q}}.\${{r}}.xml)
+#         fi
+#         if ! [ "\$diffr" = "" ]
+#         then
+#            error=true
+#            if ((index==0))
+#            then
+#               echo "Something went wrong with the displacements (most likely a restart without deleting the patterns files first).\n\\
+#Restart (\#6) after I'm done cleaning affected calculations. Cleaning following calculations:"
+#            fi
+#            ((index++))
+#            echo "\$index: q\${{q}}_r\${{r}}"
+#            rm q\${{q}}_r1/_ph0/{pf}.phsave/*.*.\${{r}}.xml 
+#            rm q\${{q}}_r\${{r}}/ph_q\${{q}}_r\${{r}}.out
+#          fi
+#       done          
+#   done
+#   if \$error
+#   then
+#      exit
+#   fi
+#fi
 
 for ((q=1; q <= irr_qs; q++))
 do   
@@ -1665,8 +1742,8 @@ fi
            tidy_sub = make_job_sub(jobname + '_tidy',1,ram,4,'','','',''),
            module_commands = generate_modules(modules),
            nbnd = nbnd, split_q = split_q, split_irr = split_irr, pf = pf, scf_t = scf_t, q_t = q_t, jobname = jobname,
-           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp_r1 = irr_link_or_cp_r1, irr_link_or_cp = irr_link_or_cp, pattern_irr = pattern_irr, nat = nat,
-		   ref_bands = ref_bands, bands_dir = bands_dir, num_of_hsp = num_of_hsp, path_prec = path_prec)]
+           num_of_cpu_ph = num_of_cpu_ph, irr_link_or_cp_r1 = irr_link_or_cp_r1, irr_link_or_cp = irr_link_or_cp, nat = nat,
+           ref_bands = ref_bands, bands_dir = bands_dir, num_of_hsp = num_of_hsp, path_prec = path_prec)]
 
 #submission script for all calculations regarding electron-phonon coupling
 epw_sh = ['''
@@ -1682,11 +1759,12 @@ wannier_init={projections_epw}
 #Specify if the wannierization energy windows should be automatically determined. If you set it to false, specify the...
 #...windows in the next block. The inner window will be the largest possible window that contains only the specified bands...
 #...but no parts of other bands. The outer window will be the smallest possible window that contains the whole specified...
-#bands including other bands should they fall in this window. You can narrow the inner and outer window with dE which specifies...
-#the value in eV that gets added/subtracted to the bottom/top of the inner window (i.e. negative values will broaden it).
+#...bands including other bands should they fall in this window. You can narrow the inner and outer window with the four dE values
 auto_window={auto_window}
-dE_inner=0.05
-dE_outer=-1.0
+dE_inner_upper=-0.4
+dE_inner_lower=-0.5
+dE_outer_upper=1.0
+dE_outer_lower=-1.0
 
 
 #Set the inner and outer wannierization energy windows manually (in eV). You only need to specify the values of this block...
@@ -1814,10 +1892,10 @@ then
    nbndskip=$(echo $windows | awk '{{print $5}}')
    
    #narrow the bands
-   smallest_inner=$(echo "$smallest_inner + $dE_inner" | bc -l)
-   largest_inner=$(echo "$largest_inner - $dE_inner" | bc -l)
-   smallest_outer=$(echo "$smallest_outer + $dE_outer" | bc -l)
-   largest_outer=$(echo "$largest_outer - $dE_outer" | bc -l)
+   smallest_inner=$(echo "$smallest_inner + $dE_inner_lower" | bc -l)
+   largest_inner=$(echo "$largest_inner + $dE_inner_upper" | bc -l)
+   smallest_outer=$(echo "$smallest_outer + $dE_outer_lower" | bc -l)
+   largest_outer=$(echo "$largest_outer + $dE_outer_upper" | bc -l)
    
    dis_froz_min=$smallest_inner
    dis_froz_max=$largest_inner
